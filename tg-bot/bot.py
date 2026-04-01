@@ -1,5 +1,6 @@
 import asyncio
 import os
+from urllib.parse import quote
 from aiogram import Bot, Dispatcher, F
 from aiogram.types import (
     Message, ReplyKeyboardMarkup, KeyboardButton,
@@ -26,11 +27,13 @@ offer_kb = ReplyKeyboardMarkup(
     resize_keyboard=True
 )
 
+_consult_msg = quote("Привет! Я прошёл тест и готов узнать свой психотип на консультации 👋")
+
 consultation_kb = InlineKeyboardMarkup(
     inline_keyboard=[
         [InlineKeyboardButton(
             text="✅ Записаться на консультацию",
-            url="https://t.me/Alexey_melnik?text=Привет! Я прошёл тест и готов узнать свой психотип на консультации 👋"
+            url=f"https://t.me/Alexey_melnik?text={_consult_msg}"
         )],
         [InlineKeyboardButton(
             text="📢 Подписаться на канал",
