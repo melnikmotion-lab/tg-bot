@@ -15,6 +15,14 @@ if not BOT_TOKEN:
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
 
+ADMIN_ID = -1003803972470
+
+async def notify_admin(text):
+    try:
+        await bot.send_message(ADMIN_ID, text)
+    except Exception:
+        pass
+
 # === КЛАВИАТУРЫ ===
 
 start_kb = ReplyKeyboardMarkup(
@@ -549,6 +557,13 @@ async def start(message: Message):
     except Exception:
         await message.answer(welcome_text, reply_markup=start_kb)
 
+    await notify_admin(
+        f"👋 Новый пользователь!\n"
+        f"Имя: {message.from_user.full_name}\n"
+        f"Username: @{message.from_user.username}\n"
+        f"ID: {message.from_user.id}"
+    )
+
 # Шаг 2: Начать тест
 @dp.message(F.text == "🚀 Начать тест")
 async def start_test(message: Message):
@@ -601,6 +616,13 @@ async def show_result(message, user_id):
             pass
     await message.answer(result)
 
+    await notify_admin(
+        f"✅ Тест пройден!\n"
+        f"Имя: {message.from_user.full_name}\n"
+        f"Username: @{message.from_user.username}\n"
+        f"Результат: {result[:200]}"
+    )
+
     # Кнопка "Узнать подробнее"
     await message.answer(
         "Хочешь узнать, как раскрыть свою природу на полную?",
@@ -616,6 +638,13 @@ async def show_offer(message: Message):
         consultation_text,
         parse_mode="HTML",
         reply_markup=consultation_kb
+    )
+
+    await notify_admin(
+        f"📖 Открыл оффер!\n"
+        f"Имя: {message.from_user.full_name}\n"
+        f"Username: @{message.from_user.username}\n"
+        f"ID: {message.from_user.id}"
     )
 
     # Чистим данные
