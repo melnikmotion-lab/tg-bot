@@ -593,11 +593,10 @@ async def show_result(message, user_id):
     photo_id = result_images.get(key)
     if photo_id:
         try:
-            await message.answer_photo(photo=photo_id, caption=result)
+            await message.answer_photo(photo=photo_id)
         except Exception:
-            await message.answer(result)
-    else:
-        await message.answer(result)
+            pass
+    await message.answer(result)
 
     # Кнопка "Узнать подробнее"
     await message.answer(
