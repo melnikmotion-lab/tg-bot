@@ -560,8 +560,7 @@ async def start(message: Message):
     await notify_admin(
         f"👋 Новый пользователь!\n"
         f"Имя: {message.from_user.full_name}\n"
-        f"Username: @{message.from_user.username}\n"
-        f"ID: {message.from_user.id}"
+        f"Username: @{message.from_user.username}"
     )
 
 # Шаг 2: Начать тест
@@ -616,11 +615,16 @@ async def show_result(message, user_id):
             pass
     await message.answer(result)
 
+    psychotype_names = {1: "Исполнитель", 2: "Предприниматель", 3: "Воин-руководитель", 4: "Творец"}
+    scores_text = "\n".join(
+        f"{k} · {psychotype_names[k]}: {scores[k]}"
+        for k in sorted(scores, key=lambda x: scores[x], reverse=True)
+    )
     await notify_admin(
         f"✅ Тест пройден!\n"
         f"Имя: {message.from_user.full_name}\n"
-        f"Username: @{message.from_user.username}\n"
-        f"Результат: {result[:200]}"
+        f"Username: @{message.from_user.username}\n\n"
+        f"У тебя есть склонности к природе:\n{scores_text}"
     )
 
     # Кнопка "Узнать подробнее"
@@ -643,8 +647,7 @@ async def show_offer(message: Message):
     await notify_admin(
         f"📖 Открыл оффер!\n"
         f"Имя: {message.from_user.full_name}\n"
-        f"Username: @{message.from_user.username}\n"
-        f"ID: {message.from_user.id}"
+        f"Username: @{message.from_user.username}"
     )
 
     # Чистим данные
