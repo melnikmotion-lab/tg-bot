@@ -521,6 +521,45 @@ results = {
 
 user_data = {}
 
+TIEBREAKER_QUESTION = (
+    "Вопрос 11. Где ты предпочитаешь проводить идеальный выходной?\n"
+    "Выбери ближайший вариант:"
+)
+
+TIEBREAKER_OPTIONS = {
+    1: "Домашний уют, привычные дела, физический отдых и сон.",
+    2: "Вечеринка, новые знакомства, активное движение и яркие впечатления.",
+    3: "Соревнования, спорт, победа над собой или активное управление отдыхом группы.",
+    4: "Уединение, книга, природа или глубокое размышление в тишине.",
+}
+
+async def send_final_result(message, key, scores):
+    result = results.get(key, "Результат не найден")
+    photo_id = result_images.get(key)
+    if photo_id:
+        try:
+            await message.answer_photo(photo=photo_id)
+        except Exception:
+            pass
+    await message.answer(result)
+
+    psychotype_names = {1: "Исполнитель", 2: "Предприниматель", 3: "Воин-руководитель", 4: "Творец"}
+    scores_text = "\n".join(
+        f"{k} · {psychotype_names[k]}: {scores[k]}"
+        for k in sorted(scores, key=lambda x: scores[x], reverse=True)
+    )
+    await notify_admin(
+        f"✅ Тест пройден!\n"
+        f"Имя: {message.from_user.full_name}\n"
+        f"Username: @{message.from_user.username}\n\n"
+        f"У тебя есть склонности к природе:\n{scores_text}"
+    )
+
+    await message.answer(
+        "Хочешь узнать, как раскрыть свою природу на полную?",
+        reply_markup=offer_kb
+    )
+
 
 def get_keyboard(answers):
     keyboard = [[KeyboardButton(text=answer)] for answer in answers]
@@ -596,42 +635,46 @@ async def show_result(message, user_id):
     scores = user_data[user_id]["scores"]
     sorted_scores = sorted(scores.items(), key=lambda x: x[1], reverse=True)
 
-    top1 = sorted_scores[0]
-    top2 = sorted_scores[1]
+    first = sorted_scores[0][1]
+    second = sorted_scores[1][1]
+    third = sorted_scores[2][1]
 
-    if top2[1] >= top1[1] - 2:
-        key = tuple(sorted([top1[0], top2[0]]))
+    # Три психотипа набрали одинаково — показываем вопрос 11
+    if first == second == third:
+        top_three_ids = [psych_id for psych_id, score in sorted_scores[:3]]
+        options = {TIEBREAKER_OPTIONS[psych_id]: psych_id for psych_id in top_three_ids}
+        user_data[user_id]["tiebreaker"] = options
+        keyboard = [[KeyboardButton(text=text)] for text in options.keys()]
+        kb = ReplyKeyboardMarkup(keyboard=keyboard, resize_keyboard=True)
+        await message.answer(TIEBREAKER_QUESTION, reply_markup=kb)
+        return
+
+    if first > second:
+        key = (sorted_scores[0][0],)
     else:
-        key = (top1[0],)
+        key = tuple(sorted([sorted_scores[0][0], sorted_scores[1][0]]))
 
-    result = results.get(key, "Результат не найден")
+    await send_final_result(message, key, scores)
 
-    # Картинка + результат
-    photo_id = result_images.get(key)
-    if photo_id:
-        try:
-            await message.answer_photo(photo=photo_id)
-        except Exception:
-            pass
-    await message.answer(result)
+# Шаг 4б: Тай-брейкер — вопрос 11
+async def _is_tiebreaker(message: Message) -> bool:
+    uid = message.from_user.id
+    return uid in user_data and "tiebreaker" in user_data.get(uid, {})
 
-    psychotype_names = {1: "Исполнитель", 2: "Предприниматель", 3: "Воин-руководитель", 4: "Творец"}
-    scores_text = "\n".join(
-        f"{k} · {psychotype_names[k]}: {scores[k]}"
-        for k in sorted(scores, key=lambda x: scores[x], reverse=True)
-    )
-    await notify_admin(
-        f"✅ Тест пройден!\n"
-        f"Имя: {message.from_user.full_name}\n"
-        f"Username: @{message.from_user.username}\n\n"
-        f"У тебя есть склонности к природе:\n{scores_text}"
-    )
+@dp.message(_is_tiebreaker)
+async def handle_tiebreaker(message: Message):
+    user_id = message.from_user.id
+    options = user_data[user_id]["tiebreaker"]
+    scores = user_data[user_id]["scores"]
 
-    # Кнопка "Узнать подробнее"
-    await message.answer(
-        "Хочешь узнать, как раскрыть свою природу на полную?",
-        reply_markup=offer_kb
-    )
+    if message.text not in options:
+        await message.answer("Пожалуйста, выбери один из предложенных вариантов.")
+        return
+
+    psych_id = options[message.text]
+    key = (psych_id,)
+    del user_data[user_id]["tiebreaker"]
+    await send_final_result(message, key, scores)
 
 # Шаг 5: Оффер + ссылки
 @dp.message(F.text == "📖 Узнать подробнее")
