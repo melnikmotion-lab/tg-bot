@@ -538,13 +538,10 @@ async def start(message: Message):
         "найти свой путь. Удачи! 🍀"
     )
     try:
-        await message.answer_photo(
-            photo=WELCOME_PHOTO,
-            caption=welcome_text,
-            reply_markup=start_kb
-        )
+        await message.answer_photo(photo=WELCOME_PHOTO)
     except Exception:
-        await message.answer(welcome_text, reply_markup=start_kb)
+        pass
+    await message.answer(welcome_text, reply_markup=start_kb)
 
 # Шаг 2: Начать тест
 @dp.message(F.text == "🚀 Начать тест")
