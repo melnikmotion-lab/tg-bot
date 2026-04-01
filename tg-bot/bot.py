@@ -511,10 +511,18 @@ results = {
 user_data = {}
 
 # === УТИЛИТА ДЛЯ ПОЛУЧЕНИЯ FILE_ID ===
+photo_counter = {}
+
 @dp.message(F.photo)
 async def get_file_id(message: Message):
+    user_id = message.from_user.id
+    photo_counter[user_id] = photo_counter.get(user_id, 0) + 1
+    count = photo_counter[user_id]
     file_id = message.photo[-1].file_id
-    await message.answer(f"file_id: <code>{file_id}</code>", parse_mode="HTML")
+    await message.answer(
+        f"📷 Фото #{count}\n<code>{file_id}</code>",
+        parse_mode="HTML"
+    )
 
 def get_keyboard(answers):
     keyboard = [[KeyboardButton(text=answer)] for answer in answers]
