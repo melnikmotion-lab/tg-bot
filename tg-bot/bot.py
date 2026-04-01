@@ -529,17 +529,21 @@ async def start(message: Message):
         "scores": {1: 0, 2: 0, 3: 0, 4: 0}
     }
 
-    await message.answer_photo(
-        photo=WELCOME_PHOTO,
-        caption=(
-            "👋 Привет, я очень рад встрече с тобой!\n\n"
-            "Сейчас тебя ждёт тест на психотипы.\n"
-            "Отвечай честно — так результат будет точнее.\n\n"
-            "Надеюсь, я смогу помочь тебе\n"
-            "найти свой путь. Удачи! 🍀"
-        ),
-        reply_markup=start_kb
+    welcome_text = (
+        "👋 Привет, я очень рад встрече с тобой!\n\n"
+        "Сейчас тебя ждёт тест на психотипы.\n"
+        "Отвечай честно — так результат будет точнее.\n\n"
+        "Надеюсь, я смогу помочь тебе\n"
+        "найти свой путь. Удачи! 🍀"
     )
+    try:
+        await message.answer_photo(
+            photo=WELCOME_PHOTO,
+            caption=welcome_text,
+            reply_markup=start_kb
+        )
+    except Exception:
+        await message.answer(welcome_text, reply_markup=start_kb)
 
 # Шаг 2: Начать тест
 @dp.message(F.text == "🚀 Начать тест")
@@ -587,7 +591,10 @@ async def show_result(message, user_id):
     # Картинка + результат
     photo_id = result_images.get(key)
     if photo_id:
-        await message.answer_photo(photo=photo_id, caption=result)
+        try:
+            await message.answer_photo(photo=photo_id, caption=result)
+        except Exception:
+            await message.answer(result)
     else:
         await message.answer(result)
 
