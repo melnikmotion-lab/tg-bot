@@ -29,7 +29,7 @@ offer_kb = ReplyKeyboardMarkup(
 consultation_kb = InlineKeyboardMarkup(
     inline_keyboard=[
         [InlineKeyboardButton(
-            text="→ Записаться на консультацию",
+            text="✅ Записаться на консультацию",
             url="https://t.me/Alexey_melnik?text=Привет! Я прошёл тест и готов узнать свой психотип на консультации 👋"
         )],
         [InlineKeyboardButton(
