@@ -60,19 +60,19 @@ consultation_text = """🔍 <b>Определение психотипа</b>
 
 # === КАРТИНКИ (file_id) ===
 
-WELCOME_PHOTO = "AgACAgIAAxkBAAFGLIdpzQxQQHxOcRFbm3cpNFHrRXecWwACbxhrGxfMaEo25ymYCJFxYgEAAwIAA3kAAzoE"
+WELCOME_PHOTO = "AgACAgIAAxkBAAPnac0TZfCGiMWP1rxAB5KfIAcxLUsAAm8YaxsXzGhKc7biXPOKOEQBAAMCAAN5AAM6BA"
 
 result_images = {
-    (1,): "AgACAgIAAxkBAAFGLGVpzQrKAAFI_IwZBfR4Eu56DCOJTVsAAhIWaxsLw2lK0Oq85_5KCnEBAAMCAAN5AAM6BA",
-    (2,): "AgACAgIAAxkBAAFGLI9pzQx9HBqNA7b7gdYLb2Py3Jp_4AACCxZrGwvDaUoSN00oW_KqRAEAAwIAA3kAAzoE",
-    (3,): "AgACAgIAAxkBAAFGLJNpzQyKHHEQoLmUvrVhuMXRyhLcTAAC6xlrG7V5aErl0j4jd3CvCwEAAwIAA3kAAzoE",
-    (4,): "AgACAgIAAxkBAAFGLJdpzQyW7p5EGicBbS2u5dYOp6aYGAAC7BlrG7V5aEqWdpym9iZPPAEAAwIAA3kAAzoE",
-    (1, 2): "AgACAgIAAxkBAAFGLJlpzQyjcdymrTEyb3VuVZLMieoNswACrRdrG-jxaEqYL8I7OrVbjAEAAwIAA3kAAzoE",
-    (1, 3): "AgACAgIAAxkBAAFGLJ1pzQyt5QT3A1W7DtpIdlEI8S8o-gACFRZrGwvDaUooAAFJog1JC2MBAAMCAAN5AAM6BA",
-    (1, 4): "AgACAgIAAxkBAAFGLJ9pzQy6j9M3VDMunMymFBiIUf3SIQAC7RlrG7V5aEoS6kjO-EaUCQEAAwIAA3kAAzoE",
-    (2, 3): "AgACAgIAAxkBAAFGLKNpzQzGkfrowpIOUiYa0IxxDGCVsAAC7xlrG7V5aErsWE7ddi03FwEAAwIAA3kAAzoE",
-    (2, 4): "AgACAgIAAxkBAAFGLKVpzQzSiMHM1dnRK1Ue88NzC9a5vQAC8RlrG7V5aEoOCqKmA-dFAwEAAwIAA3kAAzoE",
-    (3, 4): "AgACAgIAAxkBAAFGLK1pzQze8F_268jFYoRVyL5yMLz0TgAC8xlrG7V5aErJFcZxRBIMVQEAAwIAA3kAAzoE",
+    (1,): "AgACAgIAAxkBAAMzac0IpSTnTPVT0rhhyBjvu8lyC7QAAhIWaxsLw2lKb5Le0x_RV4sBAAMCAAN5AAM6BA",
+    (2,): "AgACAgIAAxkBAAMxac0Hn55Y4RUU6osxdNUf8_VskIIAAgsWaxsLw2lKlPJs6708cloBAAMCAAN5AAM6BA",
+    (3,): "AgACAgIAAxkBAAPrac0Tj6JQX-RdTpraes0r64TW-Y4AAusZaxu1eWhKH1u0yufZsa0BAAMCAAN5AAM6BA",
+    (4,): "AgACAgIAAxkBAAPsac0Tj7JE6SkRMpcnZnfNPTbuWr4AAuwZaxu1eWhK61m0rqxmH8ABAAMCAAN5AAM6BA",
+    (1, 2): "AgACAgIAAxkBAAPjac0TORBB8y2mzMejgEqMmAsSuAQAAq0Xaxvo8WhKweDGGGjPiZoBAAMCAAN5AAM6BA",
+    (1, 3): "AgACAgIAAxkBAAM0ac0JTA9LiWQZmg4sq8b0WGo4NywAAhUWaxsLw2lKvUgy1afbGBQBAAMCAAN5AAM6BA",
+    (1, 4): "AgACAgIAAxkBAAPyac0TzVPqSo9hi6tl8tCyfnN_bEYAAu8Zaxu1eWhKkkXPXzJywMkBAAMCAAN5AAM6BA",
+    (2, 3): "AgACAgIAAxkBAAPxac0TzWtqdxPhP6ZgSTSRwKbV-NIAAu0Zaxu1eWhK2rHzHvI_itUBAAMCAAN5AAM6BA",
+    (2, 4): "AgACAgIAAxkBAAPzac0TzUh2pAkBv-I9op08uq4ZCCwAAvEZaxu1eWhKNfZdqpMoRwoBAAMCAAN5AAM6BA",
+    (3, 4): "AgACAgIAAxkBAAP0ac0TzZfhRS6nK53KwgJkq6EJW6QAAvMZaxu1eWhKn5b0N5QDLJMBAAMCAAN5AAM6BA",
 }
 
 # === ВОПРОСЫ ===
@@ -510,19 +510,6 @@ results = {
 
 user_data = {}
 
-# === УТИЛИТА ДЛЯ ПОЛУЧЕНИЯ FILE_ID ===
-photo_counter = {}
-
-@dp.message(F.photo)
-async def get_file_id(message: Message):
-    user_id = message.from_user.id
-    photo_counter[user_id] = photo_counter.get(user_id, 0) + 1
-    count = photo_counter[user_id]
-    file_id = message.photo[-1].file_id
-    await message.answer(
-        f"📷 Фото #{count}\n<code>{file_id}</code>",
-        parse_mode="HTML"
-    )
 
 def get_keyboard(answers):
     keyboard = [[KeyboardButton(text=answer)] for answer in answers]
