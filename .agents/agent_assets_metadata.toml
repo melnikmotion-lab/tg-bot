@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "PWYre_APnmLzi3IYLmUyI"
+uri = "file://bot_code.zip"
+type = "unspecified"
+title = "bot_code.zip — main.py + tg-bot/bot.py"
