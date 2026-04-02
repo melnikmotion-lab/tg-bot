@@ -1,6 +1,8 @@
 import asyncio
 import os
+import threading
 from urllib.parse import quote
+from flask import Flask
 from aiogram import Bot, Dispatcher, F
 from aiogram.types import (
     Message, ReplyKeyboardMarkup, KeyboardButton,
@@ -726,9 +728,22 @@ async def show_offer(message: Message):
     if user_id in user_data:
         del user_data[user_id]
 
+# === WEB SERVER (keep-alive) ===
+
+flask_app = Flask(__name__)
+
+@flask_app.route("/")
+def index():
+    return "Bot is running!", 200
+
+def run_flask():
+    port = int(os.environ.get("PORT", 8080))
+    flask_app.run(host="0.0.0.0", port=port)
+
 # === ЗАПУСК ===
 
 async def main():
+    threading.Thread(target=run_flask, daemon=True).start()
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
