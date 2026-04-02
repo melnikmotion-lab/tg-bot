@@ -526,12 +526,45 @@ TIEBREAKER_QUESTION = (
     "Выбери ближайший вариант:"
 )
 
-TIEBREAKER_OPTIONS = {
-    1: "Домашний уют, привычные дела, физический отдых и сон.",
-    2: "Вечеринка, новые знакомства, активное движение и яркие впечатления.",
-    3: "Соревнования, спорт, победа над собой или активное управление отдыхом группы.",
-    4: "Уединение, книга, природа или глубокое размышление в тишине.",
+question_11 = {
+    "Исполнитель": "Домашний уют, привычные дела, физический отдых и сон.",
+    "Предприниматель": "Вечеринка, новые знакомства, активное движение и яркие впечатления.",
+    "Воин-руководитель": "Соревнования, спорт, победа над собой или активное управление отдыхом группы.",
+    "Творец": "Уединение, книга, природа или глубокое размышление в тишине.",
 }
+
+NAME_TO_ID = {
+    "Исполнитель": 1,
+    "Предприниматель": 2,
+    "Воин-руководитель": 3,
+    "Творец": 4,
+}
+
+ID_TO_NAME = {v: k for k, v in NAME_TO_ID.items()}
+
+def get_result(scores_by_name, answer_11=None):
+    sorted_results = sorted(scores_by_name.items(), key=lambda x: x[1], reverse=True)
+    first = sorted_results[0][1]
+    second = sorted_results[1][1]
+    third = sorted_results[2][1]
+
+    if first == second == third:
+        if answer_11 is None:
+            top_three = [name for name, score in sorted_results[:3]]
+            return "need_q11", {k: v for k, v in question_11.items() if k in top_three}
+        else:
+            return "single", answer_11
+    elif first > second:
+        return "single", sorted_results[0][0]
+    else:
+        return "double", f"{sorted_results[0][0]} + {sorted_results[1][0]}"
+
+def result_to_key(status, value):
+    if status == "single":
+        return (NAME_TO_ID[value],)
+    else:
+        names = value.split(" + ")
+        return tuple(sorted(NAME_TO_ID[n] for n in names))
 
 async def send_final_result(message, key, scores):
     result = results.get(key, "Результат не найден")
@@ -633,27 +666,20 @@ async def handle_answer(message: Message):
 # Шаг 4: Результат с картинкой + кнопка "Узнать подробнее"
 async def show_result(message, user_id):
     scores = user_data[user_id]["scores"]
-    sorted_scores = sorted(scores.items(), key=lambda x: x[1], reverse=True)
+    scores_by_name = {ID_TO_NAME[k]: v for k, v in scores.items()}
 
-    first = sorted_scores[0][1]
-    second = sorted_scores[1][1]
-    third = sorted_scores[2][1]
+    status, value = get_result(scores_by_name)
 
-    # Три психотипа набрали одинаково — показываем вопрос 11
-    if first == second == third:
-        top_three_ids = [psych_id for psych_id, score in sorted_scores[:3]]
-        options = {TIEBREAKER_OPTIONS[psych_id]: psych_id for psych_id in top_three_ids}
+    if status == "need_q11":
+        # value = {name: answer_text} — инвертируем для быстрого поиска
+        options = {answer_text: name for name, answer_text in value.items()}
         user_data[user_id]["tiebreaker"] = options
         keyboard = [[KeyboardButton(text=text)] for text in options.keys()]
         kb = ReplyKeyboardMarkup(keyboard=keyboard, resize_keyboard=True)
         await message.answer(TIEBREAKER_QUESTION, reply_markup=kb)
         return
 
-    if first > second:
-        key = (sorted_scores[0][0],)
-    else:
-        key = tuple(sorted([sorted_scores[0][0], sorted_scores[1][0]]))
-
+    key = result_to_key(status, value)
     await send_final_result(message, key, scores)
 
 # Шаг 4б: Тай-брейкер — вопрос 11
@@ -664,15 +690,18 @@ async def _is_tiebreaker(message: Message) -> bool:
 @dp.message(_is_tiebreaker)
 async def handle_tiebreaker(message: Message):
     user_id = message.from_user.id
-    options = user_data[user_id]["tiebreaker"]
+    options = user_data[user_id]["tiebreaker"]  # {answer_text: name}
     scores = user_data[user_id]["scores"]
 
     if message.text not in options:
         await message.answer("Пожалуйста, выбери один из предложенных вариантов.")
         return
 
-    psych_id = options[message.text]
-    key = (psych_id,)
+    answer_11 = options[message.text]  # психотип по имени
+    scores_by_name = {ID_TO_NAME[k]: v for k, v in scores.items()}
+    status, value = get_result(scores_by_name, answer_11=answer_11)
+
+    key = result_to_key(status, value)
     del user_data[user_id]["tiebreaker"]
     await send_final_result(message, key, scores)
 
