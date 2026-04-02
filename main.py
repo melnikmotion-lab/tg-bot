@@ -1,6 +1,10 @@
-def main():
-    print("Hello from repl-nix-workspace!")
+import sys
+import os
+import asyncio
 
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "tg-bot"))
+
+from bot import main
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
