@@ -743,6 +743,8 @@ def run_flask():
 # === ЗАПУСК ===
 
 async def main():
+    # Сбрасываем вебхук и отключаем другие экземпляры
+    await bot.delete_webhook(drop_pending_updates=True)
     threading.Thread(target=run_flask, daemon=True).start()
     await dp.start_polling(bot)
 
