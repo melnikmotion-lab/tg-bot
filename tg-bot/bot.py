@@ -1,92 +1,826 @@
-    import asyncio
-    import os
-    import threading
-    from urllib.parse import quote
-    from flask import Flask
-    from aiogram import Bot, Dispatcher, F
-    from aiogram.types import (
-        Message, ReplyKeyboardMarkup, KeyboardButton,
-        InlineKeyboardMarkup, InlineKeyboardButton
-    )
-    from aiogram.filters import Command
+import asyncio
+import os
+import threading
+from urllib.parse import quote
+from flask import Flask
+from aiogram import Bot, Dispatcher, F
+from aiogram.types import (
+    Message, ReplyKeyboardMarkup, KeyboardButton,
+    InlineKeyboardMarkup, InlineKeyboardButton, LinkPreviewOptions,
+    BotCommand, MenuButtonCommands
+)
+from aiogram.filters import Command
 
-    # Настройки бота
-    BOT_TOKEN = os.environ.get("BOT_TOKEN")
-    if not BOT_TOKEN:
-        raise RuntimeError("BOT_TOKEN environment variable is not set")
+BOT_TOKEN = os.environ.get("BOT_TOKEN")
+if not BOT_TOKEN:
+    raise RuntimeError("BOT_TOKEN environment variable is not set")
 
-    bot = Bot(token=BOT_TOKEN)
-    dp = Dispatcher()
-    ADMIN_ID = -1003803972470
+bot = Bot(token=BOT_TOKEN)
+dp = Dispatcher()
 
-    # СЛОВАРЬ ДАННЫХ (Теперь для каждого юзера своя ячейка)
-    user_data = {}
+ADMIN_ID = -1003803972470
 
-    # --- ТВОИ ОРИГИНАЛЬНЫЕ ДАННЫЕ (ИЗ bot.py) ---
-    WELCOME_PHOTO = "AgACAgIAAxkBAAPnac0TZfCGiMWP1rxAB5KfIAcxLUsAAm8YaxsXzGhKc7biXPOKOEQBAAMCAAN5AAM6BA"
-    # ... (здесь все твои result_images, questions, results, ID_TO_NAME и прочее из твоего файла)
-    # Я сократил текст для краткости, но в твоем файле оставь всё как было в секциях === ВОПРОСЫ === и === РЕЗУЛЬТАТЫ ===
-    # --------------------------------------------
+async def notify_admin(text):
+    try:
+        await bot.send_message(ADMIN_ID, text)
+    except Exception:
+        pass
 
-    # [ВСТАВЬ СЮДА ВСЕ СВОИ ПЕРЕМЕННЫЕ: result_images, questions, results, question_11, NAME_TO_ID, ID_TO_NAME]
+# === КЛАВИАТУРЫ ===
 
-    # ТВОЯ ЛОГИКА ПОДСЧЕТА (Без изменений)
-    def get_result(scores_by_name, answer_11=None):
-        sorted_results = sorted(scores_by_name.items(), key=lambda x: x[1], reverse=True)
-        first, second, third = sorted_results[0][1], sorted_results[1][1], sorted_results[2][1]
-        if first == second == third:
-            if answer_11 is None:
-                top_three = [name for name, score in sorted_results[:3]]
-                return "need_q11", {k: v for k, v in question_11.items() if k in top_three}
+start_kb = ReplyKeyboardMarkup(
+    keyboard=[[KeyboardButton(text="🚀 Начать тест")]],
+    resize_keyboard=True
+)
+
+subscribe_kb = ReplyKeyboardMarkup(
+    keyboard=[[KeyboardButton(text="✅ Подписка есть")]],
+    resize_keyboard=True
+)
+
+offer_kb = ReplyKeyboardMarkup(
+    keyboard=[[KeyboardButton(text="📖 Узнать подробнее")]],
+    resize_keyboard=True
+)
+
+_consult_msg = quote("Привет! Я прошёл тест и готов узнать свой психотип на консультации 👋")
+
+consultation_kb = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [InlineKeyboardButton(
+            text="✅ Записаться на консультацию",
+            url=f"https://t.me/Alexey_melnik?text={_consult_msg}"
+        )]
+    ]
+)
+
+subscribe_channel_kb = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [InlineKeyboardButton(
+            text="📢 Подписаться на канал",
+            url="https://t.me/Prirodo_ved"
+        )]
+    ]
+)
+
+# === ТЕКСТЫ ===
+
+consultation_text = """🔍 <b>Определение психотипа</b>
+
+Вы получите ясность — которую не давали ни книги, ни психологи, ни годы самокопания
+
+После консультации вы:
+✨ Поймёте свою природу и предназначение — узнаете, что движет вами и без чего невозможно испытывать полноценное счастье.
+💰 Направите энергию на финансовое процветание и привлечение возможностей.
+💡 Обретёте внутреннее удовлетворение от деятельности, которая раскрывает ваш потенциал.
+❤️ Узнаете, какой партнёр вам подходит для долгосрочных и гармоничных отношений.
+📈 Поймёте свой путь эволюции и деградации: что поднимает вас на «пик», а что тянет в апатию и «слив» энергии.
+
+📹 <b>Формат:</b> видеосозвон
+⏱ <b>Длительность:</b> 2 часа
+💰 <b>Стоимость:</b> <s>125$</s> → <b>100$</b> — в течение 24 часов после теста
+
+В конце созвона вы получите запись консультации в личный чат в Telegram и возможность задавать любые вопросы о вашем психотипе в течение 14 дней 📅"""
+
+# === КАРТИНКИ (file_id) ===
+
+WELCOME_PHOTO = "AgACAgIAAxkBAAPnac0TZfCGiMWP1rxAB5KfIAcxLUsAAm8YaxsXzGhKc7biXPOKOEQBAAMCAAN5AAM6BA"
+
+result_images = {
+    (1,): "AgACAgIAAxkBAAMzac0IpSTnTPVT0rhhyBjvu8lyC7QAAhIWaxsLw2lKb5Le0x_RV4sBAAMCAAN5AAM6BA",
+    (2,): "AgACAgIAAxkBAAMxac0Hn55Y4RUU6osxdNUf8_VskIIAAgsWaxsLw2lKlPJs6708cloBAAMCAAN5AAM6BA",
+    (3,): "AgACAgIAAxkBAAPrac0Tj6JQX-RdTpraes0r64TW-Y4AAusZaxu1eWhKH1u0yufZsa0BAAMCAAN5AAM6BA",
+    (4,): "AgACAgIAAxkBAAPsac0Tj7JE6SkRMpcnZnfNPTbuWr4AAuwZaxu1eWhK61m0rqxmH8ABAAMCAAN5AAM6BA",
+    (1, 2): "AgACAgIAAxkBAAPjac0TORBB8y2mzMejgEqMmAsSuAQAAq0Xaxvo8WhKweDGGGjPiZoBAAMCAAN5AAM6BA",
+    (1, 3): "AgACAgIAAxkBAAM0ac0JTA9LiWQZmg4sq8b0WGo4NywAAhUWaxsLw2lKvUgy1afbGBQBAAMCAAN5AAM6BA",
+    (1, 4): "AgACAgIAAxkBAAPxac0TzWtqdxPhP6ZgSTSRwKbV-NIAAu0Zaxu1eWhK2rHzHvI_itUBAAMCAAN5AAM6BA",
+    (2, 3): "AgACAgIAAxkBAAPyac0TzVPqSo9hi6tl8tCyfnN_bEYAAu8Zaxu1eWhKkkXPXzJywMkBAAMCAAN5AAM6BA",
+    (2, 4): "AgACAgIAAxkBAAPzac0TzUh2pAkBv-I9op08uq4ZCCwAAvEZaxu1eWhKNfZdqpMoRwoBAAMCAAN5AAM6BA",
+    (3, 4): "AgACAgIAAxkBAAP0ac0TzZfhRS6nK53KwgJkq6EJW6QAAvMZaxu1eWhKn5b0N5QDLJMBAAMCAAN5AAM6BA",
+}
+
+# === ВОПРОСЫ ===
+
+questions = [
+    {
+        "question": "Вопрос 1\nЧто для меня важнее всего в жизни?",
+        "answers": [
+            "1. Стабильность, покой, безопасность",
+            "2. Деньги, связи, возможности",
+            "3. Власть, статус, признание",
+            "4. Знания, смысл, духовный рост"
+        ]
+    },
+    {
+        "question": "Вопрос 2\nКак я принимаю решения?",
+        "answers": [
+            "1. Как все — не люблю рисковать",
+            "2. Ищу выгоду и просчитываю шаги",
+            "3. Сам, единолично — и готов отстаивать своё мнение",
+            "4. Слушаю интуицию и ищу ответы внутри"
+        ]
+    },
+    {
+        "question": "Вопрос 3\nИдеальная работа для меня:",
+        "answers": [
+            "1. Понятная, стабильная, с чёткой оплатой",
+            "2. Свобода, гибкий график, процент от результата",
+            "3. Карьерный рост, своя сфера ответственности",
+            "4. Полная свобода, без дедлайнов, признание таланта"
+        ]
+    },
+    {
+        "question": "Вопрос 4\nВ отношениях я ищу:",
+        "answers": [
+            "1. Того, кто не бросит и будет заботиться",
+            "2. Хорошего партнёра для жизни и достатка",
+            "3. Верность и преданность мне и моим целям",
+            "4. Глубокого человека, на «одной волне» со мной"
+        ]
+    },
+    {
+        "question": "Вопрос 5\nЧто меня заряжает?",
+        "answers": [
+            "1. Спокойный день, всё по плану",
+            "2. Новая сделка, новый проект, новые связи",
+            "3. Победа, первое место, уважение",
+            "4. Открытие, озарение, глубокое понимание чего-то"
+        ]
+    },
+    {
+        "question": "Вопрос 6\nЧто меня бесит больше всего?",
+        "answers": [
+            "1. Хаос, непредсказуемость, нестабильность",
+            "2. Упущенные возможности и ограничения",
+            "3. Когда не слушают и не уважают",
+            "4. Поверхностность, глупость, нарушение принципов"
+        ]
+    },
+    {
+        "question": "Вопрос 7\nМоя сильная сторона:",
+        "answers": [
+            "1. Трудолюбие, мастерство, надёжность",
+            "2. Коммуникабельность, гибкость, генерация идей",
+            "3. Решимость, смелость, умение вести за собой",
+            "4. Мудрость, независимость, широкое мировоззрение"
+        ]
+    },
+    {
+        "question": "Вопрос 8\nМоя слабая сторона:",
+        "answers": [
+            "1. Лень, инертность, страх перемен",
+            "2. Поверхностность, жадность",
+            "3. Бескомпромиссность, нетерпимость, жёсткость",
+            "4. Отрешённость, мне сложно объяснить себя другим"
+        ]
+    },
+    {
+        "question": "Вопрос 9\nКак я отношусь к деньгам?",
+        "answers": [
+            "1. Главное, чтобы хватало на жизнь",
+            "2. Деньги — это свобода и возможности",
+            "3. Деньги — это власть и статус",
+            "4. Деньги не главное, главное — смысл"
+        ]
+    },
+    {
+        "question": "Вопрос 10\nЧего я хочу от жизни по-настоящему?",
+        "answers": [
+            "1. Спокойной, предсказуемой жизни",
+            "2. Процветания, удовольствия, достатка",
+            "3. Признания, влияния, первенства",
+            "4. Открытий, глубины, духовного роста"
+        ]
+    }
+]
+
+# === РЕЗУЛЬТАТЫ ===
+
+results = {
+    (1, 2): """У тебя есть склонности к природе
+1 · Исполнителя и 2 · Предпринимателя
+
+Исполнитель — это природа мастера и надёжного человека.
+Стабильность, качество, умение делать своё дело
+лучше других. Таких людей ценят, и на них держится мир.
+
+Предприниматель — это природа того,
+кто умеет делать деньги из идей и связей.
+Новые проекты, процветание, рост — это его стихия.
+
+Это две очень разные природы.
+
+Даже если ты реализуешь обе свои природы — но они стоят не на своих местах, это всегда приводит к ощущению, что проживаешь чужую жизнь.
+
+Именно поэтому так важно понять,
+где твоя основная природа, а где дополнительная.
+
+Основная — это твоя глубинная мотивация, то, как ты
+«пробуешь этот мир на вкус». Твоё предназначение.
+Без неё нет энергии, нет радости, нет смысла.
+
+Дополнительная — это инструмент.
+Профессия, роль, способ реализации.
+
+Определить, где твой основной,
+а где дополнительный психотип — по тесту невозможно.
+Это видно только вживую —
+по взгляду, речи и поведению.
+
+Хочешь узнать свою природу
+и с уверенностью идти по своему пути?""",
+
+    (1, 3): """У тебя есть склонности к природе
+1 · Исполнителя и 3 · Воина-руководителя
+
+Исполнитель — это природа мастера и надёжного человека.
+Стабильность, качество, умение делать своё дело
+лучше других. Таких людей ценят, и на них держится мир.
+
+Воин-руководитель — это природа лидера и защитника.
+Тяга к влиянию, управлению, первенству.
+Эти люди рождены вести за собой и менять порядок вещей.
+
+Это две очень разные природы.
+
+Даже если ты реализуешь обе свои природы — но они стоят не на своих местах, это всегда приводит к ощущению, что проживаешь чужую жизнь.
+
+Именно поэтому так важно понять,
+где твоя основная природа, а где дополнительная.
+
+Основная — это твоя глубинная мотивация, то, как ты
+«пробуешь этот мир на вкус». Твоё предназначение.
+Без неё нет энергии, нет радости, нет смысла.
+
+Дополнительная — это инструмент.
+Профессия, роль, способ реализации.
+
+Определить, где твой основной,
+а где дополнительный психотип — по тесту невозможно.
+Это видно только вживую —
+по взгляду, речи и поведению.
+
+Хочешь узнать свою природу
+и с уверенностью идти по своему пути?""",
+
+    (1, 4): """У тебя есть склонности к природе
+1 · Исполнителя и 4 · Творца
+
+Исполнитель — это природа мастера и надёжного человека.
+Стабильность, качество, умение делать своё дело
+лучше других. Таких людей ценят, и на них держится мир.
+
+Творец — это природа свободного и утончённого мудреца.
+Он хочет знать, как устроен мир, быть носителем духовных, научных
+и культурных ценностей. Его увлекает не цель,
+а сам вкус деятельности — познание, открытия, глубина.
+
+Это две очень разные природы.
+
+Даже если ты реализуешь обе свои природы — но они стоят не на своих местах, это всегда приводит к ощущению, что проживаешь чужую жизнь.
+
+Именно поэтому так важно понять,
+где твоя основная природа, а где дополнительная.
+
+Основная — это твоя глубинная мотивация, то, как ты
+«пробуешь этот мир на вкус». Твоё предназначение.
+Без неё нет энергии, нет радости, нет смысла.
+
+Дополнительная — это инструмент.
+Профессия, роль, способ реализации.
+
+Определить, где твой основной,
+а где дополнительный психотип — по тесту невозможно.
+Это видно только вживую —
+по взгляду, речи и поведению.
+
+Хочешь узнать свою природу
+и с уверенностью идти по своему пути?""",
+
+    (2, 3): """У тебя есть склонности к природе
+2 · Предпринимателя и 3 · Воина-руководителя
+
+Предприниматель — это природа того,
+кто умеет делать деньги из идей и связей.
+Новые проекты, процветание, рост — это его стихия.
+
+Воин-руководитель — это природа лидера и защитника.
+Тяга к влиянию, управлению, первенству.
+Эти люди рождены вести за собой и менять порядок вещей.
+
+Это две очень разные природы.
+
+Даже если ты реализуешь обе свои природы — но они стоят не на своих местах, это всегда приводит к ощущению, что проживаешь чужую жизнь.
+
+Именно поэтому так важно понять,
+где твоя основная природа, а где дополнительная.
+
+Основная — это твоя глубинная мотивация, то, как ты
+«пробуешь этот мир на вкус». Твоё предназначение.
+Без неё нет энергии, нет радости, нет смысла.
+
+Дополнительная — это инструмент.
+Профессия, роль, способ реализации.
+
+Определить, где твой основной,
+а где дополнительный психотип — по тесту невозможно.
+Это видно только вживую —
+по взгляду, речи и поведению.
+
+Хочешь узнать свою природу
+и с уверенностью идти по своему пути?""",
+
+    (2, 4): """У тебя есть склонности к природе
+2 · Предпринимателя и 4 · Творца
+
+Предприниматель — это природа того,
+кто умеет делать деньги из идей и связей.
+Новые проекты, процветание, рост — это его стихия.
+
+Творец — это природа свободного и утончённого мудреца.
+Он хочет знать, как устроен мир, быть носителем духовных, научных
+и культурных ценностей. Его увлекает не цель,
+а сам вкус деятельности — познание, открытия, глубина.
+
+Это две очень разные природы.
+
+Даже если ты реализуешь обе свои природы — но они стоят не на своих местах, это всегда приводит к ощущению, что проживаешь чужую жизнь.
+
+Именно поэтому так важно понять,
+где твоя основная природа, а где дополнительная.
+
+Основная — это твоя глубинная мотивация, то, как ты
+«пробуешь этот мир на вкус». Твоё предназначение.
+Без неё нет энергии, нет радости, нет смысла.
+
+Дополнительная — это инструмент.
+Профессия, роль, способ реализации.
+
+Определить, где твой основной,
+а где дополнительный психотип — по тесту невозможно.
+Это видно только вживую —
+по взгляду, речи и поведению.
+
+Хочешь узнать свою природу
+и с уверенностью идти по своему пути?""",
+
+    (3, 4): """У тебя есть склонности к природе
+3 · Воина-руководителя и 4 · Творца
+
+Воин-руководитель — это природа лидера и защитника.
+Тяга к влиянию, управлению, первенству.
+Эти люди рождены вести за собой и менять порядок вещей.
+
+Творец — это природа свободного и утончённого мудреца.
+Он хочет знать, как устроен мир, быть носителем духовных, научных
+и культурных ценностей. Его увлекает не цель,
+а сам вкус деятельности — познание, открытия, глубина.
+
+Это две очень разные природы.
+
+Даже если ты реализуешь обе свои природы — но они стоят не на своих местах, это всегда приводит к ощущению, что проживаешь чужую жизнь.
+
+Именно поэтому так важно понять,
+где твоя основная природа, а где дополнительная.
+
+Основная — это твоя глубинная мотивация, то, как ты
+«пробуешь этот мир на вкус». Твоё предназначение.
+Без неё нет энергии, нет радости, нет смысла.
+
+Дополнительная — это инструмент.
+Профессия, роль, способ реализации.
+
+Определить, где твой основной,
+а где дополнительный психотип — по тесту невозможно.
+Это видно только вживую —
+по взгляду, речи и поведению.
+
+Хочешь узнать свою природу
+и с уверенностью идти по своему пути?""",
+
+    (1,): """У тебя есть склонности к природе
+1 · Исполнителя
+
+Исполнитель — это природа мастера и надёжного человека.
+Стабильность, качество, умение делать своё дело
+лучше других. Таких людей ценят, и на них держится мир.
+
+У большинства людей — двойная природа.
+Основная и дополнительная.
+
+Основная — это твоя глубинная мотивация, то, как ты
+«пробуешь этот мир на вкус». Твоё предназначение.
+Без неё нет энергии, нет радости, нет смысла.
+
+Дополнительная — это инструмент.
+Профессия, роль, способ реализации.
+
+Даже если человек реализует обе свои природы — но они стоят не на своих местах, это всегда приводит к ощущению, что он проживает «чужую жизнь».
+
+По результатам теста твои ответы
+указывают только на одну природу.
+Но это не означает, что она у тебя чистая.
+Возможно, дополнительная природа просто скрыта —
+или ты её пока не осознаёшь.
+
+Определить это по тесту невозможно.
+Это видно только вживую —
+по взгляду, речи и поведению.
+
+Хочешь узнать свою природу
+и с уверенностью идти по своему пути?""",
+
+    (2,): """У тебя есть склонности к природе
+2 · Предпринимателя
+
+Предприниматель — это природа того,
+кто умеет делать деньги из идей и связей.
+Новые проекты, процветание, рост — это его стихия.
+Это психотип «темщика» — он сам находит возможности там, где другие видят препятствия.
+
+У большинства людей — двойная природа.
+Основная и дополнительная.
+
+Основная — это твоя глубинная мотивация, то, как ты
+«пробуешь этот мир на вкус». Твоё предназначение.
+Без неё нет энергии, нет радости, нет смысла.
+
+Дополнительная — это инструмент.
+Профессия, роль, способ реализации.
+
+Даже если человек реализует обе свои природы — но они стоят не на своих местах, это всегда приводит к ощущению, что он проживает «чужую жизнь».
+
+По результатам теста твои ответы
+указывают только на одну природу.
+Но это не означает, что она у тебя чистая.
+Возможно, дополнительная природа просто скрыта —
+или ты её пока не осознаёшь.
+
+Определить это по тесту невозможно.
+Это видно только вживую —
+по взгляду, речи и поведению.
+
+Хочешь узнать свою природу
+и с уверенностью идти по своему пути?""",
+
+    (3,): """У тебя есть склонности к природе
+3 · Воина-руководителя
+
+Воин-руководитель — это природа лидера и защитника.
+Тяга к влиянию, управлению, первенству.
+Эти люди рождены вести за собой и менять порядок вещей.
+Им не нужно разрешения, чтобы действовать.
+
+У большинства людей — двойная природа.
+Основная и дополнительная.
+
+Основная — это твоя глубинная мотивация, то, как ты
+«пробуешь этот мир на вкус». Твоё предназначение.
+Без неё нет энергии, нет радости, нет смысла.
+
+Дополнительная — это инструмент.
+Профессия, роль, способ реализации.
+
+Даже если человек реализует обе свои природы — но они стоят не на своих местах, это всегда приводит к ощущению, что он проживает «чужую жизнь».
+
+По результатам теста твои ответы
+указывают только на одну природу.
+Но это не означает, что она у тебя чистая.
+Возможно, дополнительная природа просто скрыта —
+или ты её пока не осознаёшь.
+
+Определить это по тесту невозможно.
+Это видно только вживую —
+по взгляду, речи и поведению.
+
+Хочешь узнать свою природу
+и с уверенностью идти по своему пути?""",
+
+    (4,): """У тебя есть склонности к природе
+4 · Творца
+
+Творец — это природа свободного и утончённого мудреца.
+Он хочет знать, как устроен мир, быть носителем духовных, научных
+и культурных ценностей. Его увлекает не цель,
+а сам вкус деятельности — познание, открытия, глубина.
+
+У большинства людей — двойная природа.
+Основная и дополнительная.
+
+Основная — это твоя глубинная мотивация, то, как ты
+«пробуешь этот мир на вкус». Твоё предназначение.
+Без неё нет энергии, нет радости, нет смысла.
+
+Дополнительная — это инструмент.
+Профессия, роль, способ реализации.
+
+Даже если человек реализует обе свои природы — но они стоят не на своих местах, это всегда приводит к ощущению, что он проживает «чужую жизнь».
+
+По результатам теста твои ответы
+указывают только на одну природу.
+Но это не означает, что она у тебя чистая.
+Возможно, дополнительная природа просто скрыта —
+или ты её пока не осознаёшь.
+
+Определить это по тесту невозможно.
+Это видно только вживую —
+по взгляду, речи и поведению.
+
+Хочешь узнать свою природу
+и с уверенностью идти по своему пути?"""
+}
+
+# === ЛОГИКА ===
+
+user_data = {}
+
+TIEBREAKER_QUESTION = (
+    "Вопрос 11. Где ты предпочитаешь проводить идеальный выходной?\n"
+    "Выбери ближайший вариант:"
+)
+
+question_11 = {
+    "Исполнитель": "Домашний уют, привычные дела, физический отдых и сон.",
+    "Предприниматель": "Вечеринка, новые знакомства, активное движение и яркие впечатления.",
+    "Воин-руководитель": "Соревнования, спорт, победа над собой или активное управление отдыхом группы.",
+    "Творец": "Уединение, книга, природа или глубокое размышление в тишине.",
+}
+
+NAME_TO_ID = {
+    "Исполнитель": 1,
+    "Предприниматель": 2,
+    "Воин-руководитель": 3,
+    "Творец": 4,
+}
+
+ID_TO_NAME = {v: k for k, v in NAME_TO_ID.items()}
+
+def get_result(scores_by_name, answer_11=None):
+    sorted_results = sorted(scores_by_name.items(), key=lambda x: x[1], reverse=True)
+    first = sorted_results[0][1]
+    second = sorted_results[1][1]
+    third = sorted_results[2][1]
+
+    if first == second == third:
+        if answer_11 is None:
+            top_three = [name for name, score in sorted_results[:3]]
+            return "need_q11", {k: v for k, v in question_11.items() if k in top_three}
+        else:
             return "single", answer_11
-        elif first > second:
-            return "single", sorted_results[0][0]
+    elif first > second:
+        return "single", sorted_results[0][0]
+    else:
         return "double", f"{sorted_results[0][0]} + {sorted_results[1][0]}"
 
-    # ВСЕ ТВОИ ФУНКЦИИ (notify_admin, result_to_key, send_final_result, send_question) ОСТАЮТСЯ ТАКИМИ ЖЕ
+def result_to_key(status, value):
+    if status == "single":
+        return (NAME_TO_ID[value],)
+    else:
+        names = value.split(" + ")
+        return tuple(sorted(NAME_TO_ID[n] for n in names))
 
-    # ОБНОВЛЕННЫЕ ОБРАБОТЧИКИ (Работают с user_data[user_id])
-    @dp.message(Command("start"))
-    async def start(message: Message):
-        user_data[message.from_user.id] = {"current_question": 0, "scores": {1: 0, 2: 0, 3: 0, 4: 0}}
-        # Твой код приветствия...
-        await message.answer_photo(photo=WELCOME_PHOTO, caption="👋 Привет!...") 
+async def send_final_result(message, key, scores):
+    result = results.get(key, "Результат не найден")
+    photo_id = result_images.get(key)
+    if photo_id:
+        try:
+            await message.answer_photo(photo=photo_id)
+        except Exception:
+            pass
+    await message.answer(result)
 
-    @dp.message(F.text == "🚀 Начать тест")
-    async def start_test(message: Message):
-        user_id = message.from_user.id
-        user_data[user_id] = {"current_question": 0, "scores": {1: 0, 2: 0, 3: 0, 4: 0}}
-        await send_question(message, 0)
+    psychotype_names_genitive = {
+        1: "Исполнителя",
+        2: "Предпринимателя",
+        3: "Воина-руководителя",
+        4: "Творца"
+    }
+    result_label = " + ".join(
+        f"{k} · {psychotype_names_genitive[k]}" for k in key
+    )
+    await notify_admin(
+        f"✅ Тест пройден!\n"
+        f"Имя: {message.from_user.full_name}\n"
+        f"Username: @{message.from_user.username}\n\n"
+        f"У тебя есть склонности к природе\n{result_label}"
+    )
 
-    @dp.message(F.text.regexp(r"^[1-4]\."))
-    async def handle_answer(message: Message):
-        user_id = message.from_user.id
-        if user_id not in user_data: return
+    await message.answer(
+        "Хочешь узнать, как раскрыть свою природу на полную?",
+        reply_markup=offer_kb
+    )
 
-        ans_num = int(message.text[0])
-        user_data[user_id]["scores"][ans_num] += 1
-        user_data[user_id]["current_question"] += 1
 
-        if user_data[user_id]["current_question"] < len(questions):
-            await send_question(message, user_data[user_id]["current_question"])
-        else:
-            await show_result(message, user_id)
+def get_keyboard(answers):
+    keyboard = [[KeyboardButton(text=answer)] for answer in answers]
+    return ReplyKeyboardMarkup(keyboard=keyboard, resize_keyboard=True)
 
-    # ОСТАЛЬНЫЕ ФУНКЦИИ (show_result, handle_tiebreaker, show_offer) 
-    # ПРОСТО КОПИРУЙ ИЗ СВОЕГО ОРИГИНАЛЬНОГО bot.py
+async def send_question(message, question_index):
+    question = questions[question_index]
+    await message.answer(
+        question["question"],
+        reply_markup=get_keyboard(question["answers"])
+    )
 
-    # === ЗАПУСК (Твой вариант с Flask) ===
-    flask_app = Flask(__name__)
-    @flask_app.route("/")
-    def index(): return "Bot is running!", 200
+# Шаг 1: /start → картинка + приветствие + запрос подписки
+@dp.message(Command("start"))
+async def start(message: Message):
+    user_data[message.from_user.id] = {
+        "current_question": 0,
+        "scores": {1: 0, 2: 0, 3: 0, 4: 0},
+        "subscribed": False
+    }
 
-    def run_flask():
-        port = int(os.environ.get("BOT_PORT", 5000))
-        flask_app.run(host="0.0.0.0", port=port)
+    welcome_text = (
+        "👋 Привет, я очень рад встрече с тобой!\n\n"
+        "Сейчас тебя ждёт тест на психотипы.\n"
+        "Отвечай честно — так результат будет точнее."
+    )
+    try:
+        await message.answer_photo(photo=WELCOME_PHOTO, caption=welcome_text)
+    except Exception:
+        await message.answer(welcome_text)
 
-    async def main():
-        threading.Thread(target=run_flask, daemon=True).start()
-        await dp.start_polling(bot)
+    await message.answer(
+        "Маленькая просьба, перед тем как пойдём дальше.\n\n"
+        "Подпишись на мой ТГ-канал, в котором я делюсь материалами "
+        "по самопознанию и о том, как лучше понимать себя и других "
+        "благодаря знанию о психотипах\n\n"
+        "Как подпишешься — жми кнопку «Подписка есть» ✅"
+    )
+    await message.answer(
+        "https://t.me/Prirodo_ved",
+        reply_markup=subscribe_kb,
+        link_preview=LinkPreviewOptions(is_disabled=False)
+    )
 
-    if __name__ == "__main__":
-        asyncio.run(main())
+    await notify_admin(
+        f"👋 Новый пользователь!\n"
+        f"Имя: {message.from_user.full_name}\n"
+        f"Username: @{message.from_user.username}"
+    )
+
+# Шаг 1б: Подписка подтверждена
+@dp.message(F.text == "✅ Подписка есть")
+async def handle_subscribed(message: Message):
+    user_id = message.from_user.id
+    if user_id not in user_data:
+        user_data[user_id] = {
+            "current_question": 0,
+            "scores": {1: 0, 2: 0, 3: 0, 4: 0},
+            "subscribed": False
+        }
+
+    user_data[user_id]["subscribed"] = True
+
+    await notify_admin(
+        f"✅ Подписался на канал!\n"
+        f"Имя: {message.from_user.full_name}\n"
+        f"Username: @{message.from_user.username}"
+    )
+
+    await message.answer(
+        "Отлично! Надеюсь, я смогу помочь тебе найти свой путь. Удачи! 🍀",
+        reply_markup=start_kb
+    )
+
+# Шаг 2: Начать тест
+@dp.message(F.text == "🚀 Начать тест")
+async def start_test(message: Message):
+    user_id = message.from_user.id
+
+    # Если пользователь ещё не подписался — напоминаем
+    if user_id not in user_data or not user_data.get(user_id, {}).get("subscribed"):
+        await message.answer(
+            "Маленькая просьба, перед тем как пойдём дальше.\n\n"
+            "Подпишись на мой ТГ-канал, в котором я делюсь материалами "
+            "по самопознанию и о том, как лучше понимать себя и других "
+            "благодаря знанию о психотипах\n\n"
+            "Как подпишешься — жми кнопку «Подписка есть» ✅"
+        )
+        await message.answer(
+            "https://t.me/Prirodo_ved",
+            reply_markup=subscribe_kb,
+            link_preview=LinkPreviewOptions(is_disabled=False)
+        )
+        return
+
+    user_data[user_id]["current_question"] = 0
+    user_data[user_id]["scores"] = {1: 0, 2: 0, 3: 0, 4: 0}
+    await send_question(message, 0)
+
+# Шаг 3: Вопросы-ответы
+@dp.message(F.text.startswith("1.") | F.text.startswith("2.") | F.text.startswith("3.") | F.text.startswith("4."))
+async def handle_answer(message: Message):
+    user_id = message.from_user.id
+
+    if user_id not in user_data:
+        await message.answer("Нажми 🚀 Начать тест")
+        return
+
+    answer_num = int(message.text[0])
+    user_data[user_id]["scores"][answer_num] += 1
+    user_data[user_id]["current_question"] += 1
+    current = user_data[user_id]["current_question"]
+
+    if current < len(questions):
+        await send_question(message, current)
+    else:
+        await show_result(message, user_id)
+
+# Шаг 4: Результат с картинкой + кнопка "Узнать подробнее"
+async def show_result(message, user_id):
+    scores = user_data[user_id]["scores"]
+    scores_by_name = {ID_TO_NAME[k]: v for k, v in scores.items()}
+
+    status, value = get_result(scores_by_name)
+
+    if status == "need_q11":
+        # value = {name: answer_text} — инвертируем для быстрого поиска
+        options = {answer_text: name for name, answer_text in value.items()}
+        user_data[user_id]["tiebreaker"] = options
+        keyboard = [[KeyboardButton(text=text)] for text in options.keys()]
+        kb = ReplyKeyboardMarkup(keyboard=keyboard, resize_keyboard=True)
+        await message.answer(TIEBREAKER_QUESTION, reply_markup=kb)
+        return
+
+    key = result_to_key(status, value)
+    await send_final_result(message, key, scores)
+
+# Шаг 4б: Тай-брейкер — вопрос 11
+async def _is_tiebreaker(message: Message) -> bool:
+    uid = message.from_user.id
+    return uid in user_data and "tiebreaker" in user_data.get(uid, {})
+
+@dp.message(_is_tiebreaker)
+async def handle_tiebreaker(message: Message):
+    user_id = message.from_user.id
+    options = user_data[user_id]["tiebreaker"]  # {answer_text: name}
+    scores = user_data[user_id]["scores"]
+
+    if message.text not in options:
+        await message.answer("Пожалуйста, выбери один из предложенных вариантов.")
+        return
+
+    answer_11 = options[message.text]  # психотип по имени
+    # Добавляем балл за 11-й вопрос в итоговый счёт
+    scores[NAME_TO_ID[answer_11]] += 1
+    scores_by_name = {ID_TO_NAME[k]: v for k, v in scores.items()}
+    status, value = get_result(scores_by_name, answer_11=answer_11)
+
+    key = result_to_key(status, value)
+    del user_data[user_id]["tiebreaker"]
+    await send_final_result(message, key, scores)
+
+# Шаг 5: Оффер + ссылки
+@dp.message(F.text == "📖 Узнать подробнее")
+async def show_offer(message: Message):
+    user_id = message.from_user.id
+
+    await message.answer(
+        consultation_text,
+        parse_mode="HTML",
+        reply_markup=consultation_kb
+    )
+
+    await notify_admin(
+        f"📖 Открыл оффер!\n"
+        f"Имя: {message.from_user.full_name}\n"
+        f"Username: @{message.from_user.username}"
+    )
+
+    # Чистим данные
+    if user_id in user_data:
+        del user_data[user_id]
+
+
+# === WEB SERVER (keep-alive) ===
+
+flask_app = Flask(__name__)
+
+@flask_app.route("/")
+def index():
+    return "Bot is running!", 200
+
+def run_flask():
+    port = int(os.environ.get("BOT_PORT", 5000))
+    flask_app.run(host="0.0.0.0", port=port)
+
+# === ЗАПУСК ===
+
+async def main():
+    # Удаляем webhook и сбрасываем все ожидающие обновления,
+    # чтобы принудительно завершить другие копии бота
+    await bot.delete_webhook(drop_pending_updates=True)
+
+    # Регистрируем команду /start в меню бота (кнопка «Menu»)
+    await bot.set_my_commands([
+        BotCommand(command="start", description="Начать тест 🚀")
+    ])
+    await bot.set_chat_menu_button(menu_button=MenuButtonCommands())
+
+    threading.Thread(target=run_flask, daemon=True).start()
+    await dp.start_polling(bot, drop_pending_updates=True)
+
+if __name__ == "__main__":
+    asyncio.run(main())
