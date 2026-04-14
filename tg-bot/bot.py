@@ -10,6 +10,7 @@ from aiogram.types import (
     BotCommand, MenuButtonCommands
 )
 from aiogram.filters import Command
+from aiogram.exceptions import TelegramBadRequest, TelegramForbiddenError
 
 BOT_TOKEN = os.environ.get("BOT_TOKEN")
 if not BOT_TOKEN:
@@ -661,6 +662,8 @@ async def start(message: Message):
     )
 
 # Шаг 1б: Подписка подтверждена
+CHANNEL_USERNAME = "@Prirodo_ved"
+
 @dp.message(F.text == "✅ Подписка есть")
 async def handle_subscribed(message: Message):
     user_id = message.from_user.id
@@ -670,6 +673,38 @@ async def handle_subscribed(message: Message):
             "scores": {1: 0, 2: 0, 3: 0, 4: 0},
             "subscribed": False
         }
+
+    # Проверяем реальную подписку через Telegram API
+    try:
+        member = await bot.get_chat_member(chat_id=CHANNEL_USERNAME, user_id=user_id)
+        is_subscribed = member.status in ("member", "administrator", "creator")
+    except TelegramForbiddenError:
+        # Бот не имеет прав в канале — не можем проверить, пропускаем
+        is_subscribed = True
+    except TelegramBadRequest as e:
+        err = str(e).lower()
+        if "chat not found" in err or "bot is not a member" in err:
+            # Канал не найден или бот не в канале — не можем проверить
+            is_subscribed = True
+        else:
+            # Пользователь не найден в канале = не подписан
+            print(f"[subscription check] TelegramBadRequest: {e}")
+            is_subscribed = False
+    except Exception as e:
+        print(f"[subscription check] Unexpected error: {e}")
+        is_subscribed = True
+
+    if not is_subscribed:
+        await message.answer(
+            "Похоже, ты ещё не подписан на канал 🙁\n\n"
+            "Пожалуйста, подпишись и снова нажми «✅ Подписка есть»",
+            reply_markup=subscribe_kb
+        )
+        await message.answer(
+            CHANNEL_USERNAME,
+            link_preview=LinkPreviewOptions(is_disabled=False)
+        )
+        return
 
     user_data[user_id]["subscribed"] = True
 
