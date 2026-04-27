@@ -588,7 +588,7 @@ async def send_final_result(message, key, scores):
             await message.answer_photo(photo=photo_id)
         except Exception:
             pass
-    await message.answer(result)
+    await message.answer(result, reply_markup=offer_kb)
 
     psychotype_names_genitive = {
         1: "Исполнителя",
@@ -605,12 +605,6 @@ async def send_final_result(message, key, scores):
         f"Username: @{message.from_user.username}\n\n"
         f"У тебя есть склонности к природе\n{result_label}"
     )
-
-    await message.answer(
-        "Хочешь узнать, как раскрыть свою природу на полную?",
-        reply_markup=offer_kb
-    )
-
 
 def get_keyboard(answers):
     keyboard = [[KeyboardButton(text=answer)] for answer in answers]
