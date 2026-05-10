@@ -5,8 +5,7 @@ from urllib.parse import quote
 from flask import Flask
 from aiogram import Bot, Dispatcher, F
 from aiogram.types import (
-    Message, ReplyKeyboardMarkup, ReplyKeyboardRemove, KeyboardButton,
-    InlineKeyboardMarkup, InlineKeyboardButton, LinkPreviewOptions,
+    Message, InlineKeyboardMarkup, InlineKeyboardButton, LinkPreviewOptions,
     BotCommand, MenuButtonCommands, CallbackQuery
 )
 from aiogram.filters import Command
@@ -48,6 +47,15 @@ consultation_kb = InlineKeyboardMarkup(
         [InlineKeyboardButton(
             text="✅ Записаться на консультацию",
             url=f"https://t.me/Alexey_melnik?text={_consult_msg}"
+        )]
+    ]
+)
+
+subscribe_channel_kb = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [InlineKeyboardButton(
+            text="📢 Подписаться на канал",
+            url="https://t.me/Prirodo_ved"
         )]
     ]
 )
@@ -394,7 +402,20 @@ results = {
 Стабильность, качество, умение делать своё дело
 лучше других. Таких людей ценят, и на них держится мир.
 
-По результатам теста твои ответы указывают только на одну природу.
+У большинства людей — двойная природа.
+Основная и дополнительная.
+
+Основная — это твоя глубинная мотивация, то, как ты
+«пробуешь этот мир на вкус». Твоё предназначение.
+Без неё нет энергии, нет радости, нет смысла.
+
+Дополнительная — это инструмент.
+Профессия, роль, способ реализации.
+
+Даже если человек реализует обе свои природы — но они стоят не на своих местах, это всегда приводит к ощущению, что он проживает «чужую жизнь».
+
+По результатам теста твои ответы
+указывают только на одну природу.
 Но это не означает, что она у тебя чистая.
 Возможно, дополнительная природа просто скрыта —
 или ты её пока не осознаёшь.
@@ -412,8 +433,22 @@ results = {
 Предприниматель — это природа того,
 кто умеет делать деньги из идей и связей.
 Новые проекты, процветание, рост — это его стихия.
+Это психотип «темщика» — он сам находит возможности там, где другие видят препятствия.
 
-По результатам теста твои ответы указывают только на одну природу.
+У большинства людей — двойная природа.
+Основная и дополнительная.
+
+Основная — это твоя глубинная мотивация, то, как ты
+«пробуешь этот мир на вкус». Твоё предназначение.
+Без неё нет энергии, нет радости, нет смысла.
+
+Дополнительная — это инструмент.
+Профессия, роль, способ реализации.
+
+Даже если человек реализует обе свои природы — но они стоят не на своих местах, это всегда приводит к ощущению, что он проживает «чужую жизнь».
+
+По результатам теста твои ответы
+указывают только на одну природу.
 Но это не означает, что она у тебя чистая.
 Возможно, дополнительная природа просто скрыта —
 или ты её пока не осознаёшь.
@@ -431,8 +466,22 @@ results = {
 Воин-руководитель — это природа лидера и защитника.
 Тяга к влиянию, управлению, первенству.
 Эти люди рождены вести за собой и менять порядок вещей.
+Им не нужно разрешения, чтобы действовать.
 
-По результатам теста твои ответы указывают только на одну природу.
+У большинства людей — двойная природа.
+Основная и дополнительная.
+
+Основная — это твоя глубинная мотивация, то, как ты
+«пробуешь этот мир на вкус». Твоё предназначение.
+Без неё нет энергии, нет радости, нет смысла.
+
+Дополнительная — это инструмент.
+Профессия, роль, способ реализации.
+
+Даже если человек реализует обе свои природы — но они стоят не на своих местах, это всегда приводит к ощущению, что он проживает «чужую жизнь».
+
+По результатам теста твои ответы
+указывают только на одну природу.
 Но это не означает, что она у тебя чистая.
 Возможно, дополнительная природа просто скрыта —
 или ты её пока не осознаёшь.
@@ -452,7 +501,20 @@ results = {
 и культурных ценностей. Его увлекает не цель,
 а сам вкус деятельности — познание, открытия, глубина.
 
-По результатам теста твои ответы указывают только на одну природу.
+У большинства людей — двойная природа.
+Основная и дополнительная.
+
+Основная — это твоя глубинная мотивация, то, как ты
+«пробуешь этот мир на вкус». Твоё предназначение.
+Без неё нет энергии, нет радости, нет смысла.
+
+Дополнительная — это инструмент.
+Профессия, роль, способ реализации.
+
+Даже если человек реализует обе свои природы — но они стоят не на своих местах, это всегда приводит к ощущению, что он проживает «чужую жизнь».
+
+По результатам теста твои ответы
+указывают только на одну природу.
 Но это не означает, что она у тебя чистая.
 Возможно, дополнительная природа просто скрыта —
 или ты её пока не осознаёшь.
@@ -469,15 +531,6 @@ results = {
 
 user_data = {}
 
-NAME_TO_ID = {
-    "Исполнитель": 1,
-    "Предприниматель": 2,
-    "Воин-руководитель": 3,
-    "Творец": 4,
-}
-
-ID_TO_NAME = {v: k for k, v in NAME_TO_ID.items()}
-
 TIEBREAKER_QUESTION = (
     "Вопрос 11. Где ты предпочитаешь проводить идеальный выходной?\n"
     "Выбери ближайший вариант:"
@@ -490,52 +543,31 @@ question_11 = {
     "Творец": "Уединение, книга, природа или глубокое размышление в тишине.",
 }
 
-TIEBREAKER2_QUESTION = (
-    "Вопрос 12. Как ты относишься к людям в своём окружении?\n"
-    "Выбери ближайший вариант:"
-)
-
-question_12 = {
-    "Исполнитель": "Ценю проверенных и надёжных людей.",
-    "Предприниматель": "Легко завожу новые знакомства.",
-    "Воин-руководитель": "Уважаю сильных и целеустремлённых.",
-    "Творец": "Ценю глубину и понимание.",
+NAME_TO_ID = {
+    "Исполнитель": 1,
+    "Предприниматель": 2,
+    "Воин-руководитель": 3,
+    "Творец": 4,
 }
 
+ID_TO_NAME = {v: k for k, v in NAME_TO_ID.items()}
 
-def get_top2(scores_by_name):
-    """Возвращает (first_name, second_name, tied_first, tied_second).
-    tied_first — список имён с максимальным счётом.
-    tied_second — список имён со вторым счётом (не входящих в tied_first).
-    """
+def get_result(scores_by_name):
     sorted_results = sorted(scores_by_name.items(), key=lambda x: x[1], reverse=True)
-    first_score = sorted_results[0][1]
-    tied_first = [n for n, s in sorted_results if s == first_score]
+    if sorted_results[0][1] == 10:
+        return "single", sorted_results[0][0]
+    return "double", f"{sorted_results[0][0]} + {sorted_results[1][0]}"
 
-    if len(tied_first) >= 2:
-        return None, None, tied_first, []
-
-    first_name = sorted_results[0][0]
-    second_score = sorted_results[1][1]
-    tied_second = [n for n, s in sorted_results[1:] if s == second_score]
-
-    if len(tied_second) >= 2:
-        return first_name, None, [], tied_second
-
-    return first_name, sorted_results[1][0], [], []
-
-
-def result_to_key(first, second):
-    ids = tuple(sorted([NAME_TO_ID[first], NAME_TO_ID[second]]))
-    return ids
-
-
-def single_key(name):
-    return (NAME_TO_ID[name],)
-
+def result_to_key(status, value):
+    if status == "single":
+        return (NAME_TO_ID[value],)
+    else:
+        names = value.split(" + ")
+        return tuple(sorted(NAME_TO_ID[n] for n in names))
 
 async def send_final_result(message, key, scores, user):
     result = results.get(key, "Результат не найден")
+
     photo_id = result_images.get(key)
     if photo_id:
         try:
@@ -545,14 +577,15 @@ async def send_final_result(message, key, scores, user):
     await message.answer(result, reply_markup=offer_kb)
 
     psychotype_names_genitive = {
-        1: "Исполнителя", 2: "Предпринимателя",
-        3: "Воина-руководителя", 4: "Творца"
+        1: "Исполнителя",
+        2: "Предпринимателя",
+        3: "Воина-руководителя",
+        4: "Творца"
     }
-    psychotype_names = {
-        1: "Исполнитель", 2: "Предприниматель",
-        3: "Воин-руководитель", 4: "Творец"
-    }
-    result_label = " + ".join(f"{k} · {psychotype_names_genitive[k]}" for k in key)
+    psychotype_names = {1: "Исполнитель", 2: "Предприниматель", 3: "Воин-руководитель", 4: "Творец"}
+    result_label = " + ".join(
+        f"{k} · {psychotype_names_genitive[k]}" for k in key
+    )
     scores_text = "\n".join(
         f"{k} · {psychotype_names[k]}: {scores[k]}"
         for k in sorted(scores, key=lambda x: scores[x], reverse=True)
@@ -565,59 +598,18 @@ async def send_final_result(message, key, scores, user):
         f"Разбивка:\n{scores_text}"
     )
 
-
 def get_keyboard(answers):
     buttons = [[InlineKeyboardButton(text=answer, callback_data=f"answer_{answer[0]}")] for answer in answers]
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 
-
 async def send_question(message, question_index):
     question = questions[question_index]
-    await message.answer(question["question"], reply_markup=get_keyboard(question["answers"]))
+    await message.answer(
+        question["question"],
+        reply_markup=get_keyboard(question["answers"])
+    )
 
-
-async def finish_test(message, user_id, user):
-    """Вызывается после 10 вопросов. Определяет результат или задаёт доп вопросы."""
-    scores = user_data[user_id]["scores"]
-    scores_by_name = {ID_TO_NAME[k]: v for k, v in scores.items()}
-
-    # Случай 10 из 10
-    sorted_results = sorted(scores_by_name.items(), key=lambda x: x[1], reverse=True)
-    if sorted_results[0][1] == 10:
-        key = single_key(sorted_results[0][0])
-        await send_final_result(message, key, scores, user)
-        return
-
-    first_name, second_name, tied_first, tied_second = get_top2(scores_by_name)
-
-    if tied_first:
-        # Ничья за 1-е место среди 3+ → вопрос 11
-        options = {v: k for k, v in question_11.items() if k in tied_first}
-        user_data[user_id]["tb_stage"] = "first"
-        user_data[user_id]["tb_candidates"] = tied_first
-        buttons = [[InlineKeyboardButton(text=text, callback_data=f"tb_{name}")] for text, name in options.items()]
-        kb = InlineKeyboardMarkup(inline_keyboard=buttons)
-        await message.answer(TIEBREAKER_QUESTION, reply_markup=kb)
-        return
-
-    if tied_second:
-        # Первый ясен, ничья за 2-е место → вопрос 11
-        user_data[user_id]["tb_stage"] = "second"
-        user_data[user_id]["tb_first"] = first_name
-        user_data[user_id]["tb_candidates"] = tied_second
-        options = {v: k for k, v in question_11.items() if k in tied_second}
-        buttons = [[InlineKeyboardButton(text=text, callback_data=f"tb_{name}")] for text, name in options.items()]
-        kb = InlineKeyboardMarkup(inline_keyboard=buttons)
-        await message.answer(TIEBREAKER_QUESTION, reply_markup=kb)
-        return
-
-    # Всё ясно
-    key = result_to_key(first_name, second_name)
-    await send_final_result(message, key, scores, user)
-
-
-# === HANDLERS ===
-
+# Шаг 1: /start → картинка + приветствие + запрос подписки
 @dp.message(Command("start"))
 async def start(message: Message):
     user_data[message.from_user.id] = {
@@ -647,19 +639,20 @@ async def start(message: Message):
         link_preview=LinkPreviewOptions(url="https://t.me/Prirodo_ved")
     )
 
-    await notify_admin(
-        f"👋 Новый пользователь!\n"
-        f"Имя: {message.from_user.full_name}\n"
-        f"Username: @{message.from_user.username}"
-    )
-
-
+# Шаг 1б: Подписка подтверждена
 CHANNEL_USERNAME = "@Prirodo_ved"
 
+@dp.callback_query(F.data == "check_subscription")
+async def check_subscription_callback(callback: CallbackQuery):
+    user_id = callback.from_user.id
+    await callback.answer()
 
-async def _do_check_subscription(user_id, send_fn):
     if user_id not in user_data:
-        user_data[user_id] = {"current_question": 0, "scores": {1: 0, 2: 0, 3: 0, 4: 0}, "subscribed": False}
+        user_data[user_id] = {
+            "current_question": 0,
+            "scores": {1: 0, 2: 0, 3: 0, 4: 0},
+            "subscribed": False
+        }
 
     try:
         member = await bot.get_chat_member(chat_id=CHANNEL_USERNAME, user_id=user_id)
@@ -669,45 +662,36 @@ async def _do_check_subscription(user_id, send_fn):
     except TelegramBadRequest as e:
         err = str(e).lower()
         is_subscribed = True if ("chat not found" in err or "bot is not a member" in err) else False
-    except Exception:
+        if not is_subscribed:
+            print(f"[subscription check] TelegramBadRequest: {e}")
+    except Exception as e:
+        print(f"[subscription check] Unexpected error: {e}")
         is_subscribed = True
 
     if not is_subscribed:
-        await send_fn(
+        await callback.message.answer(
             "Похоже, ты ещё не подписан на канал 🙁\n\n"
             "Подпишись на мой <a href=\"https://t.me/Prirodo_ved\">ТГ-канал</a> и снова нажми «✅ Подписка есть»",
             reply_markup=subscribe_kb,
             parse_mode="HTML",
             link_preview=LinkPreviewOptions(url="https://t.me/Prirodo_ved")
         )
-        return False
+        return
 
     user_data[user_id]["subscribed"] = True
-    return True
+    await callback.message.answer("Отлично! Надеюсь, я смогу помочь тебе найти свой путь. Удачи! 🍀")
+    await callback.message.answer("Жми кнопку ниже, чтобы начать 👇", reply_markup=start_kb)
 
-
-@dp.message(F.text == "✅ Подписка есть")
-async def handle_subscribed(message: Message):
-    ok = await _do_check_subscription(message.from_user.id, message.answer)
-    if ok:
-        await message.answer("Отлично! Надеюсь, я смогу помочь тебе найти свой путь. Удачи! 🍀")
-        await message.answer("Жми кнопку ниже, чтобы начать 👇", reply_markup=start_kb)
-
-
-@dp.callback_query(F.data == "check_subscription")
-async def check_subscription_callback(callback: CallbackQuery):
-    await callback.answer()
-    ok = await _do_check_subscription(callback.from_user.id, callback.message.answer)
-    if ok:
-        await callback.message.answer("Отлично! Надеюсь, я смогу помочь тебе найти свой путь. Удачи! 🍀")
-        await callback.message.answer("Жми кнопку ниже, чтобы начать 👇", reply_markup=start_kb)
-
-
+# Шаг 2: Начать тест
 async def _do_start_test(message: Message, user_id: int):
+    # Если пользователь ещё не подписался — напоминаем
     if user_id not in user_data or not user_data.get(user_id, {}).get("subscribed"):
         await message.answer(
             "Маленькая просьба, перед тем как пойдём дальше.\n\n"
-            "Подпишись на мой <a href=\"https://t.me/Prirodo_ved\">ТГ-канал</a> и нажми «✅ Подписка есть»",
+            "Подпишись на мой <a href=\"https://t.me/Prirodo_ved\">ТГ-канал</a>, в котором я делюсь материалами "
+            "по самопознанию и о том, как лучше понимать себя и других "
+            "благодаря знанию о психотипах\n\n"
+            "Как подпишешься — жми кнопку «Подписка есть» ✅",
             reply_markup=subscribe_kb,
             parse_mode="HTML",
             link_preview=LinkPreviewOptions(url="https://t.me/Prirodo_ved")
@@ -716,22 +700,43 @@ async def _do_start_test(message: Message, user_id: int):
 
     user_data[user_id]["current_question"] = 0
     user_data[user_id]["scores"] = {1: 0, 2: 0, 3: 0, 4: 0}
-    # Чистим состояние тай-брейкера если было
-    for key in ["tb_stage", "tb_first", "tb_candidates"]:
-        user_data[user_id].pop(key, None)
     await send_question(message, 0)
-
 
 @dp.message(F.text == "🚀 Начать тест")
 async def start_test(message: Message):
     await _do_start_test(message, message.from_user.id)
-
 
 @dp.callback_query(F.data == "start_test")
 async def start_test_callback(callback: CallbackQuery):
     await callback.answer()
     await _do_start_test(callback.message, callback.from_user.id)
 
+# Шаг 3: Вопросы-ответы
+@dp.message(F.text.startswith("1.") | F.text.startswith("2.") | F.text.startswith("3.") | F.text.startswith("4."))
+async def handle_answer(message: Message):
+    user_id = message.from_user.id
+
+    if user_id not in user_data:
+        await message.answer("Нажми 🚀 Начать тест")
+        return
+
+    answer_num = int(message.text[0])
+    user_data[user_id]["scores"][answer_num] += 1
+    user_data[user_id]["current_question"] += 1
+    current = user_data[user_id]["current_question"]
+
+    if current < len(questions):
+        await send_question(message, current)
+    else:
+        await show_result(message, user_id, message.from_user)
+
+# Шаг 4: Результат
+async def show_result(message, user_id, user):
+    scores = user_data[user_id]["scores"]
+    scores_by_name = {ID_TO_NAME[k]: v for k, v in scores.items()}
+    status, value = get_result(scores_by_name)
+    key = result_to_key(status, value)
+    await send_final_result(message, key, scores, user)
 
 @dp.callback_query(F.data.startswith("answer_"))
 async def handle_answer_callback(callback: CallbackQuery):
@@ -750,50 +755,13 @@ async def handle_answer_callback(callback: CallbackQuery):
     if current < len(questions):
         await send_question(callback.message, current)
     else:
-        await finish_test(callback.message, user_id, callback.from_user)
+        await show_result(callback.message, user_id, callback.from_user)
 
+# Шаг 5: Оффер + ссылки
+async def _do_show_offer(message: Message, user):
+    user_id = user.id
 
-@dp.callback_query(F.data.startswith("tb_"))
-async def handle_tiebreaker_callback(callback: CallbackQuery):
-    user_id = callback.from_user.id
-    await callback.answer()
-
-    if user_id not in user_data or "tb_stage" not in user_data.get(user_id, {}):
-        await callback.message.answer("Нажми /start чтобы начать тест")
-        return
-
-    chosen = callback.data[len("tb_"):]
-    stage = user_data[user_id]["tb_stage"]
-    scores = user_data[user_id]["scores"]
-
-    if stage == "first":
-        # Выбрали первый психотип из тройной ничьи
-        # Теперь нужно определить второго из оставшихся двух
-        candidates = [n for n in user_data[user_id]["tb_candidates"] if n != chosen]
-        user_data[user_id]["tb_stage"] = "second"
-        user_data[user_id]["tb_first"] = chosen
-        user_data[user_id]["tb_candidates"] = candidates
-        options = {v: k for k, v in question_12.items() if k in candidates}
-        buttons = [[InlineKeyboardButton(text=text, callback_data=f"tb_{name}")] for text, name in options.items()]
-        kb = InlineKeyboardMarkup(inline_keyboard=buttons)
-        await callback.message.answer(TIEBREAKER2_QUESTION, reply_markup=kb)
-
-    elif stage == "second":
-        # Выбрали второй психотип
-        first_name = user_data[user_id]["tb_first"]
-        # Чистим состояние
-        for key in ["tb_stage", "tb_first", "tb_candidates"]:
-            user_data[user_id].pop(key, None)
-        key = result_to_key(first_name, chosen)
-        await send_final_result(callback.message, key, scores, callback.from_user)
-
-
-@dp.callback_query(F.data == "show_offer")
-async def show_offer_callback(callback: CallbackQuery):
-    await callback.answer()
-    user_id = callback.from_user.id
-
-    await callback.message.answer(
+    await message.answer(
         consultation_text,
         parse_mode="HTML",
         reply_markup=consultation_kb
@@ -801,40 +769,51 @@ async def show_offer_callback(callback: CallbackQuery):
 
     await notify_admin(
         f"📖 Открыл оффер!\n"
-        f"Имя: {callback.from_user.full_name}\n"
-        f"Username: @{callback.from_user.username}"
+        f"Имя: {user.full_name}\n"
+        f"Username: @{user.username}"
     )
 
+    # Чистим данные
     if user_id in user_data:
         del user_data[user_id]
+
+@dp.message(F.text == "📖 Узнать подробнее")
+async def show_offer(message: Message):
+    await _do_show_offer(message, message.from_user)
+
+@dp.callback_query(F.data == "show_offer")
+async def show_offer_callback(callback: CallbackQuery):
+    await callback.answer()
+    await _do_show_offer(callback.message, callback.from_user)
 
 
 # === WEB SERVER (keep-alive) ===
 
 flask_app = Flask(__name__)
 
-
 @flask_app.route("/")
 def index():
     return "Bot is running!", 200
-
 
 def run_flask():
     port = int(os.environ.get("BOT_PORT", 5000))
     flask_app.run(host="0.0.0.0", port=port)
 
-
 # === ЗАПУСК ===
 
 async def main():
+    # Удаляем webhook и сбрасываем все ожидающие обновления,
+    # чтобы принудительно завершить другие копии бота
     await bot.delete_webhook(drop_pending_updates=True)
+
+    # Регистрируем команду /start в меню бота (кнопка «Menu»)
     await bot.set_my_commands([
         BotCommand(command="start", description="Начать тест 🚀")
     ])
     await bot.set_chat_menu_button(menu_button=MenuButtonCommands())
+
     threading.Thread(target=run_flask, daemon=True).start()
     await dp.start_polling(bot, drop_pending_updates=True)
-
 
 if __name__ == "__main__":
     asyncio.run(main())
