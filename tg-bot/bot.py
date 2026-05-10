@@ -91,8 +91,8 @@ result_images = {
     (4,): "AgACAgIAAxkBAAPsac0Tj7JE6SkRMpcnZnfNPTbuWr4AAuwZaxu1eWhK61m0rqxmH8ABAAMCAAN5AAM6BA",
     (1, 2): "AgACAgIAAxkBAAPjac0TORBB8y2mzMejgEqMmAsSuAQAAq0Xaxvo8WhKweDGGGjPiZoBAAMCAAN5AAM6BA",
     (1, 3): "AgACAgIAAxkBAAM0ac0JTA9LiWQZmg4sq8b0WGo4NywAAhUWaxsLw2lKvUgy1afbGBQBAAMCAAN5AAM6BA",
-    (1, 4): "AgACAgIAAxkBAAPxac0TzWtqdxPhP6ZgSTSRwKbV-NIAAu0Zaxu1eWhK2rHzHvI_itUBAAMCAAN5AAM6BA",
-    (2, 3): "AgACAgIAAxkBAAPyac0TzVPqSo9hi6tl8tCyfnN_bEYAAu8Zaxu1eWhKkkXPXzJywMkBAAMCAAN5AAM6BA",
+    (1, 4): "AgACAgIAAxkBAAPsac0Tj7JE6SkRMpcnZnfNPTbuWr4AAuwZaxu1eWhK61m0rqxmH8ABAAMCAAN5AAM6BA",
+    (2, 3): "AgACAgIAAxkBAAPrac0Tj6JQX-RdTpraes0r64TW-Y4AAusZaxu1eWhKH1u0yufZsa0BAAMCAAN5AAM6BA",
     (2, 4): "AgACAgIAAxkBAAPzac0TzUh2pAkBv-I9op08uq4ZCCwAAvEZaxu1eWhKNfZdqpMoRwoBAAMCAAN5AAM6BA",
     (3, 4): "AgACAgIAAxkBAAP0ac0TzZfhRS6nK53KwgJkq6EJW6QAAvMZaxu1eWhKn5b0N5QDLJMBAAMCAAN5AAM6BA",
 }
@@ -558,6 +558,10 @@ def get_result(scores_by_name, answer_11=None):
     first_score = sorted_results[0][1]
     second_score = sorted_results[1][1]
 
+    # Все 10 ответов — один психотип → чистый одиночный результат
+    if first_score == 10:
+        return "single", sorted_results[0][0]
+
     # Ничья на первом месте — q11 определяет победителя
     tied_first = [name for name, score in sorted_results if score == first_score]
     if len(tied_first) > 1:
@@ -585,6 +589,8 @@ def get_result(scores_by_name, answer_11=None):
     return "double", f"{first_name} + {second_name}"
 
 def result_to_key(status, value):
+    if status == "single":
+        return (NAME_TO_ID[value],)
     names = value.split(" + ")
     return tuple(sorted(NAME_TO_ID[n] for n in names))
 
