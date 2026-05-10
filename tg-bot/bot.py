@@ -642,11 +642,12 @@ async def start(message: Message):
 
     await message.answer(
         "Маленькая просьба, перед тем как пойдём дальше.\n\n"
-        "Подпишись на мой ТГ-канал (https://t.me/Prirodo_ved), в котором я делюсь материалами "
+        "Подпишись на мой <a href=\"https://t.me/Prirodo_ved\">ТГ-канал</a>, в котором я делюсь материалами "
         "по самопознанию и о том, как лучше понимать себя и других "
         "благодаря знанию о психотипах\n\n"
         "Как подпишешься — жми кнопку «Подписка есть» ✅",
-        reply_markup=subscribe_kb
+        reply_markup=subscribe_kb,
+        parse_mode="HTML"
     )
 
 # Шаг 1б: Подписка подтверждена
@@ -673,8 +674,9 @@ async def _do_check_subscription(user_id, send_fn):
     if not is_subscribed:
         await send_fn(
             "Похоже, ты ещё не подписан на канал 🙁\n\n"
-            "Подпишись на мой ТГ-канал (https://t.me/Prirodo_ved) и снова нажми «✅ Подписка есть»",
-            reply_markup=subscribe_kb
+            "Подпишись на мой <a href=\"https://t.me/Prirodo_ved\">ТГ-канал</a> и снова нажми «✅ Подписка есть»",
+            reply_markup=subscribe_kb,
+            parse_mode="HTML"
         )
         return False
 
@@ -701,11 +703,12 @@ async def _do_start_test(message: Message, user_id: int):
     if user_id not in user_data or not user_data.get(user_id, {}).get("subscribed"):
         await message.answer(
             "Маленькая просьба, перед тем как пойдём дальше.\n\n"
-            "Подпишись на мой ТГ-канал (https://t.me/Prirodo_ved), в котором я делюсь материалами "
+            "Подпишись на мой <a href=\"https://t.me/Prirodo_ved\">ТГ-канал</a>, в котором я делюсь материалами "
             "по самопознанию и о том, как лучше понимать себя и других "
             "благодаря знанию о психотипах\n\n"
             "Как подпишешься — жми кнопку «Подписка есть» ✅",
-            reply_markup=subscribe_kb
+            reply_markup=subscribe_kb,
+            parse_mode="HTML"
         )
         return
 
