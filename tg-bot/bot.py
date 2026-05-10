@@ -647,7 +647,8 @@ async def start(message: Message):
         "благодаря знанию о психотипах\n\n"
         "Как подпишешься — жми кнопку «Подписка есть» ✅",
         reply_markup=subscribe_kb,
-        parse_mode="HTML"
+        parse_mode="HTML",
+        link_preview=LinkPreviewOptions(url="https://t.me/Prirodo_ved")
     )
 
 # Шаг 1б: Подписка подтверждена
@@ -676,7 +677,8 @@ async def _do_check_subscription(user_id, send_fn):
             "Похоже, ты ещё не подписан на канал 🙁\n\n"
             "Подпишись на мой <a href=\"https://t.me/Prirodo_ved\">ТГ-канал</a> и снова нажми «✅ Подписка есть»",
             reply_markup=subscribe_kb,
-            parse_mode="HTML"
+            parse_mode="HTML",
+            link_preview=LinkPreviewOptions(url="https://t.me/Prirodo_ved")
         )
         return False
 
@@ -708,7 +710,8 @@ async def _do_start_test(message: Message, user_id: int):
             "благодаря знанию о психотипах\n\n"
             "Как подпишешься — жми кнопку «Подписка есть» ✅",
             reply_markup=subscribe_kb,
-            parse_mode="HTML"
+            parse_mode="HTML",
+            link_preview=LinkPreviewOptions(url="https://t.me/Prirodo_ved")
         )
         return
 
