@@ -91,8 +91,8 @@ result_images = {
     (4,): "AgACAgIAAxkBAAPsac0Tj7JE6SkRMpcnZnfNPTbuWr4AAuwZaxu1eWhK61m0rqxmH8ABAAMCAAN5AAM6BA",
     (1, 2): "AgACAgIAAxkBAAPjac0TORBB8y2mzMejgEqMmAsSuAQAAq0Xaxvo8WhKweDGGGjPiZoBAAMCAAN5AAM6BA",
     (1, 3): "AgACAgIAAxkBAAM0ac0JTA9LiWQZmg4sq8b0WGo4NywAAhUWaxsLw2lKvUgy1afbGBQBAAMCAAN5AAM6BA",
-    (1, 4): "AgACAgIAAxkBAAPsac0Tj7JE6SkRMpcnZnfNPTbuWr4AAuwZaxu1eWhK61m0rqxmH8ABAAMCAAN5AAM6BA",
-    (2, 3): "AgACAgIAAxkBAAPrac0Tj6JQX-RdTpraes0r64TW-Y4AAusZaxu1eWhKH1u0yufZsa0BAAMCAAN5AAM6BA",
+    (1, 4): "AgACAgIAAxkBAAPxac0TzWtqdxPhP6ZgSTSRwKbV-NIAAu0Zaxu1eWhK2rHzHvI_itUBAAMCAAN5AAM6BA",
+    (2, 3): "AgACAgIAAxkBAAPyac0TzVPqSo9hi6tl8tCyfnN_bEYAAu8Zaxu1eWhKkkXPXzJywMkBAAMCAAN5AAM6BA",
     (2, 4): "AgACAgIAAxkBAAPzac0TzUh2pAkBv-I9op08uq4ZCCwAAvEZaxu1eWhKNfZdqpMoRwoBAAMCAAN5AAM6BA",
     (3, 4): "AgACAgIAAxkBAAP0ac0TzZfhRS6nK53KwgJkq6EJW6QAAvMZaxu1eWhKn5b0N5QDLJMBAAMCAAN5AAM6BA",
 }
@@ -544,6 +544,18 @@ question_11 = {
     "Творец": "Уединение, книга, природа или глубокое размышление в тишине.",
 }
 
+TIEBREAKER2_QUESTION = (
+    "Вопрос 12. Как ты относишься к людям в своём окружении?\n"
+    "Выбери ближайший вариант:"
+)
+
+question_12 = {
+    "Исполнитель": "Ценю проверенных и надёжных людей.",
+    "Предприниматель": "Легко завожу новые знакомства.",
+    "Воин-руководитель": "Уважаю сильных и целеустремлённых.",
+    "Творец": "Ценю глубину и понимание.",
+}
+
 NAME_TO_ID = {
     "Исполнитель": 1,
     "Предприниматель": 2,
@@ -553,40 +565,42 @@ NAME_TO_ID = {
 
 ID_TO_NAME = {v: k for k, v in NAME_TO_ID.items()}
 
-def get_result(scores_by_name, answer_11=None):
+def get_result(scores_by_name, answer_11=None, answer_12=None):
     sorted_results = sorted(scores_by_name.items(), key=lambda x: x[1], reverse=True)
     first_score = sorted_results[0][1]
-    second_score = sorted_results[1][1]
 
-    # Все 10 ответов — один психотип → чистый одиночный результат
+    # 10 из 10 — одиночный результат
     if first_score == 10:
         return "single", sorted_results[0][0]
 
-    # Ничья на первом месте — q11 определяет победителя
     tied_first = [name for name, score in sorted_results if score == first_score]
-    if len(tied_first) > 1:
+
+    # 3+ ничья на 1-м месте → Q11 определяет первого, Q12 определяет второго
+    if len(tied_first) >= 3:
         if answer_11 is None:
             return "need_q11", {k: v for k, v in question_11.items() if k in tied_first}
-        else:
-            # Победитель определён, второй — лучший из оставшихся
-            remaining = [name for name, score in sorted_results if name != answer_11]
-            second_name = remaining[0]
-            return "double", f"{answer_11} + {second_name}"
+        remaining_tied = [n for n in tied_first if n != answer_11]
+        if answer_12 is None:
+            return "need_q12", {k: v for k, v in question_12.items() if k in remaining_tied}
+        return "double", f"{answer_11} + {answer_12}"
+
+    # 2 ничья на 1-м месте → сразу двойной результат, без вопросов
+    if len(tied_first) == 2:
+        return "double", f"{tied_first[0]} + {tied_first[1]}"
 
     # Первый ясен
     first_name = sorted_results[0][0]
-
-    # Ничья на втором месте — q11 определяет второго
+    second_score = sorted_results[1][1]
     tied_second = [name for name, score in sorted_results[1:] if score == second_score]
-    if len(tied_second) > 1:
+
+    # Ничья на 2-м месте → Q11 определяет второго
+    if len(tied_second) >= 2:
         if answer_11 is None:
             return "need_q11", {k: v for k, v in question_11.items() if k in tied_second}
-        else:
-            return "double", f"{first_name} + {answer_11}"
+        return "double", f"{first_name} + {answer_11}"
 
-    # Всё ясно — возвращаем двойной результат
-    second_name = sorted_results[1][0]
-    return "double", f"{first_name} + {second_name}"
+    # Всё ясно
+    return "double", f"{first_name} + {sorted_results[1][0]}"
 
 def result_to_key(status, value):
     if status == "single":
@@ -797,14 +811,21 @@ async def handle_tiebreaker(message: Message):
         await message.answer("Пожалуйста, выбери один из предложенных вариантов.")
         return
 
-    answer_11 = options[message.text]  # психотип по имени
-    # Добавляем балл за 11-й вопрос в итоговый счёт
+    answer_11 = options[message.text]
     scores[NAME_TO_ID[answer_11]] += 1
     scores_by_name = {ID_TO_NAME[k]: v for k, v in scores.items()}
     status, value = get_result(scores_by_name, answer_11=answer_11)
+    del user_data[user_id]["tiebreaker"]
+
+    if status == "need_q12":
+        options12 = {answer_text: name for name, answer_text in value.items()}
+        user_data[user_id]["tiebreaker2"] = {"first": answer_11, "options": options12}
+        buttons = [[InlineKeyboardButton(text=text, callback_data=f"tiebreak2_{name}")] for text, name in options12.items()]
+        kb = InlineKeyboardMarkup(inline_keyboard=buttons)
+        await message.answer(TIEBREAKER2_QUESTION, reply_markup=kb)
+        return
 
     key = result_to_key(status, value)
-    del user_data[user_id]["tiebreaker"]
     await send_final_result(message, key, scores, message.from_user)
 
 @dp.callback_query(F.data.startswith("answer_"))
@@ -840,9 +861,36 @@ async def handle_tiebreaker_callback(callback: CallbackQuery):
     scores[NAME_TO_ID[psychotype_name]] += 1
     scores_by_name = {ID_TO_NAME[k]: v for k, v in scores.items()}
     status, value = get_result(scores_by_name, answer_11=psychotype_name)
+    del user_data[user_id]["tiebreaker"]
+
+    if status == "need_q12":
+        options12 = {answer_text: name for name, answer_text in value.items()}
+        user_data[user_id]["tiebreaker2"] = {"first": psychotype_name, "options": options12}
+        buttons = [[InlineKeyboardButton(text=text, callback_data=f"tiebreak2_{name}")] for text, name in options12.items()]
+        kb = InlineKeyboardMarkup(inline_keyboard=buttons)
+        await callback.message.answer(TIEBREAKER2_QUESTION, reply_markup=kb)
+        return
 
     key = result_to_key(status, value)
-    del user_data[user_id]["tiebreaker"]
+    await send_final_result(callback.message, key, scores, callback.from_user)
+
+@dp.callback_query(F.data.startswith("tiebreak2_"))
+async def handle_tiebreaker2_callback(callback: CallbackQuery):
+    user_id = callback.from_user.id
+    await callback.answer()
+
+    if user_id not in user_data or "tiebreaker2" not in user_data.get(user_id, {}):
+        await callback.message.answer("Нажми /start чтобы начать тест")
+        return
+
+    psychotype_name = callback.data[len("tiebreak2_"):]
+    tb2 = user_data[user_id]["tiebreaker2"]
+    first_name = tb2["first"]
+    scores = user_data[user_id]["scores"]
+    scores[NAME_TO_ID[psychotype_name]] += 1
+    del user_data[user_id]["tiebreaker2"]
+
+    key = result_to_key("double", f"{first_name} + {psychotype_name}")
     await send_final_result(callback.message, key, scores, callback.from_user)
 
 # Шаг 5: Оффер + ссылки
