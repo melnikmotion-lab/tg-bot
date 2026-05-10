@@ -573,27 +573,26 @@ def get_result(scores_by_name, answer_11=None, answer_12=None):
     if first_score == 10:
         return "single", sorted_results[0][0]
 
+    # Ничья на 1-м месте среди 3+
     tied_first = [name for name, score in sorted_results if score == first_score]
-
-    # 3+ ничья на 1-м месте → Q11 определяет первого, Q12 определяет второго
     if len(tied_first) >= 3:
         if answer_11 is None:
             return "need_q11", {k: v for k, v in question_11.items() if k in tied_first}
-        remaining_tied = [n for n in tied_first if n != answer_11]
         if answer_12 is None:
-            return "need_q12", {k: v for k, v in question_12.items() if k in remaining_tied}
+            remaining = [n for n in tied_first if n != answer_11]
+            return "need_q12", {k: v for k, v in question_12.items() if k in remaining}
         return "double", f"{answer_11} + {answer_12}"
 
-    # 2 ничья на 1-м месте → сразу двойной результат, без вопросов
+    # Ничья на 1-м месте среди 2 — сразу двойной результат
     if len(tied_first) == 2:
         return "double", f"{tied_first[0]} + {tied_first[1]}"
 
-    # Первый ясен
+    # Первый ясен, смотрим второе место
     first_name = sorted_results[0][0]
     second_score = sorted_results[1][1]
     tied_second = [name for name, score in sorted_results[1:] if score == second_score]
 
-    # Ничья на 2-м месте → Q11 определяет второго
+    # Ничья на 2-м месте — задаём 11-й вопрос
     if len(tied_second) >= 2:
         if answer_11 is None:
             return "need_q11", {k: v for k, v in question_11.items() if k in tied_second}
