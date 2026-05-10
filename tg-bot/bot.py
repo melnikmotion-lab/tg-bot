@@ -5,9 +5,9 @@ from urllib.parse import quote
 from flask import Flask
 from aiogram import Bot, Dispatcher, F
 from aiogram.types import (
-    Message, ReplyKeyboardMarkup, KeyboardButton,
+    Message, ReplyKeyboardMarkup, ReplyKeyboardRemove, KeyboardButton,
     InlineKeyboardMarkup, InlineKeyboardButton, LinkPreviewOptions,
-    BotCommand, MenuButtonCommands
+    BotCommand, MenuButtonCommands, CallbackQuery
 )
 from aiogram.filters import Command
 from aiogram.exceptions import TelegramBadRequest, TelegramForbiddenError
@@ -29,19 +29,16 @@ async def notify_admin(text):
 
 # === КЛАВИАТУРЫ ===
 
-start_kb = ReplyKeyboardMarkup(
-    keyboard=[[KeyboardButton(text="🚀 Начать тест")]],
-    resize_keyboard=True
+start_kb = InlineKeyboardMarkup(
+    inline_keyboard=[[InlineKeyboardButton(text="🚀 Начать тест", callback_data="start_test")]]
 )
 
-subscribe_kb = ReplyKeyboardMarkup(
-    keyboard=[[KeyboardButton(text="✅ Подписка есть")]],
-    resize_keyboard=True
+subscribe_kb = InlineKeyboardMarkup(
+    inline_keyboard=[[InlineKeyboardButton(text="✅ Подписка есть", callback_data="check_subscription")]]
 )
 
-offer_kb = ReplyKeyboardMarkup(
-    keyboard=[[KeyboardButton(text="📖 Узнать подробнее")]],
-    resize_keyboard=True
+offer_kb = InlineKeyboardMarkup(
+    inline_keyboard=[[InlineKeyboardButton(text="📖 Узнать подробнее", callback_data="show_offer")]]
 )
 
 _consult_msg = quote("Привет! Я прошёл тест и готов узнать свой психотип на консультации 👋")
@@ -79,7 +76,7 @@ consultation_text = """🔍 <b>Определение психотипа</b>
 
 📹 <b>Формат:</b> видеосозвон
 ⏱ <b>Длительность:</b> 2 часа
-💰 <b>Стоимость:</b> <s>100$</s> → <b>75$</b> — в течение 24 часов после теста
+💰 <b>Стоимость:</b> <s>120$</s> → <b>100$</b> — в течение 24 часов после теста
 
 В конце созвона вы получите запись консультации в личный чат в Telegram и возможность задавать любые вопросы о вашем психотипе в течение 14 дней 📅"""
 
@@ -580,8 +577,9 @@ def result_to_key(status, value):
         names = value.split(" + ")
         return tuple(sorted(NAME_TO_ID[n] for n in names))
 
-async def send_final_result(message, key, scores):
+async def send_final_result(message, key, scores, user):
     result = results.get(key, "Результат не найден")
+
     photo_id = result_images.get(key)
     if photo_id:
         try:
@@ -596,19 +594,25 @@ async def send_final_result(message, key, scores):
         3: "Воина-руководителя",
         4: "Творца"
     }
+    psychotype_names = {1: "Исполнитель", 2: "Предприниматель", 3: "Воин-руководитель", 4: "Творец"}
     result_label = " + ".join(
         f"{k} · {psychotype_names_genitive[k]}" for k in key
     )
+    scores_text = "\n".join(
+        f"{k} · {psychotype_names[k]}: {scores[k]}"
+        for k in sorted(scores, key=lambda x: scores[x], reverse=True)
+    )
     await notify_admin(
         f"✅ Тест пройден!\n"
-        f"Имя: {message.from_user.full_name}\n"
-        f"Username: @{message.from_user.username}\n\n"
-        f"У тебя есть склонности к природе\n{result_label}"
+        f"Имя: {user.full_name}\n"
+        f"Username: @{user.username}\n\n"
+        f"У тебя есть склонности к природе\n{result_label}\n\n"
+        f"Разбивка по вариантам:\n{scores_text}"
     )
 
 def get_keyboard(answers):
-    keyboard = [[KeyboardButton(text=answer)] for answer in answers]
-    return ReplyKeyboardMarkup(keyboard=keyboard, resize_keyboard=True)
+    buttons = [[InlineKeyboardButton(text=answer, callback_data=f"answer_{answer[0]}")] for answer in answers]
+    return InlineKeyboardMarkup(inline_keyboard=buttons)
 
 async def send_question(message, question_index):
     question = questions[question_index]
@@ -638,105 +642,85 @@ async def start(message: Message):
 
     await message.answer(
         "Маленькая просьба, перед тем как пойдём дальше.\n\n"
-        "Подпишись на мой ТГ-канал, в котором я делюсь материалами "
+        "Подпишись на мой ТГ-канал (https://t.me/Prirodo_ved), в котором я делюсь материалами "
         "по самопознанию и о том, как лучше понимать себя и других "
         "благодаря знанию о психотипах\n\n"
-        "Как подпишешься — жми кнопку «Подписка есть» ✅"
-    )
-    await message.answer(
-        "https://t.me/Prirodo_ved",
-        reply_markup=subscribe_kb,
-        link_preview=LinkPreviewOptions(is_disabled=False)
-    )
-
-    await notify_admin(
-        f"👋 Новый пользователь!\n"
-        f"Имя: {message.from_user.full_name}\n"
-        f"Username: @{message.from_user.username}"
+        "Как подпишешься — жми кнопку «Подписка есть» ✅",
+        reply_markup=subscribe_kb
     )
 
 # Шаг 1б: Подписка подтверждена
 CHANNEL_USERNAME = "@Prirodo_ved"
 
-@dp.message(F.text == "✅ Подписка есть")
-async def handle_subscribed(message: Message):
-    user_id = message.from_user.id
+async def _do_check_subscription(user_id, send_fn):
     if user_id not in user_data:
-        user_data[user_id] = {
-            "current_question": 0,
-            "scores": {1: 0, 2: 0, 3: 0, 4: 0},
-            "subscribed": False
-        }
+        user_data[user_id] = {"current_question": 0, "scores": {1: 0, 2: 0, 3: 0, 4: 0}, "subscribed": False}
 
-    # Проверяем реальную подписку через Telegram API
     try:
         member = await bot.get_chat_member(chat_id=CHANNEL_USERNAME, user_id=user_id)
         is_subscribed = member.status in ("member", "administrator", "creator")
     except TelegramForbiddenError:
-        # Бот не имеет прав в канале — не можем проверить, пропускаем
         is_subscribed = True
     except TelegramBadRequest as e:
         err = str(e).lower()
-        if "chat not found" in err or "bot is not a member" in err:
-            # Канал не найден или бот не в канале — не можем проверить
-            is_subscribed = True
-        else:
-            # Пользователь не найден в канале = не подписан
+        is_subscribed = True if ("chat not found" in err or "bot is not a member" in err) else False
+        if not is_subscribed:
             print(f"[subscription check] TelegramBadRequest: {e}")
-            is_subscribed = False
     except Exception as e:
         print(f"[subscription check] Unexpected error: {e}")
         is_subscribed = True
 
     if not is_subscribed:
-        await message.answer(
+        await send_fn(
             "Похоже, ты ещё не подписан на канал 🙁\n\n"
-            "Пожалуйста, подпишись и снова нажми «✅ Подписка есть»",
+            "Подпишись на мой ТГ-канал (https://t.me/Prirodo_ved) и снова нажми «✅ Подписка есть»",
             reply_markup=subscribe_kb
         )
-        await message.answer(
-            CHANNEL_USERNAME,
-            link_preview=LinkPreviewOptions(is_disabled=False)
-        )
-        return
+        return False
 
     user_data[user_id]["subscribed"] = True
+    return True
 
-    await notify_admin(
-        f"✅ Подписался на канал!\n"
-        f"Имя: {message.from_user.full_name}\n"
-        f"Username: @{message.from_user.username}"
-    )
+@dp.message(F.text == "✅ Подписка есть")
+async def handle_subscribed(message: Message):
+    ok = await _do_check_subscription(message.from_user.id, message.answer)
+    if ok:
+        await message.answer("Отлично! Надеюсь, я смогу помочь тебе найти свой путь. Удачи! 🍀")
+        await message.answer("Жми кнопку ниже, чтобы начать 👇", reply_markup=start_kb)
 
-    await message.answer(
-        "Отлично! Надеюсь, я смогу помочь тебе найти свой путь. Удачи! 🍀",
-        reply_markup=start_kb
-    )
+@dp.callback_query(F.data == "check_subscription")
+async def check_subscription_callback(callback: CallbackQuery):
+    await callback.answer()
+    ok = await _do_check_subscription(callback.from_user.id, callback.message.answer)
+    if ok:
+        await callback.message.answer("Отлично! Надеюсь, я смогу помочь тебе найти свой путь. Удачи! 🍀")
+        await callback.message.answer("Жми кнопку ниже, чтобы начать 👇", reply_markup=start_kb)
 
 # Шаг 2: Начать тест
-@dp.message(F.text == "🚀 Начать тест")
-async def start_test(message: Message):
-    user_id = message.from_user.id
-
-    # Если пользователь ещё не подписался — напоминаем
+async def _do_start_test(message: Message, user_id: int):
     if user_id not in user_data or not user_data.get(user_id, {}).get("subscribed"):
         await message.answer(
             "Маленькая просьба, перед тем как пойдём дальше.\n\n"
-            "Подпишись на мой ТГ-канал, в котором я делюсь материалами "
+            "Подпишись на мой ТГ-канал (https://t.me/Prirodo_ved), в котором я делюсь материалами "
             "по самопознанию и о том, как лучше понимать себя и других "
             "благодаря знанию о психотипах\n\n"
-            "Как подпишешься — жми кнопку «Подписка есть» ✅"
-        )
-        await message.answer(
-            "https://t.me/Prirodo_ved",
-            reply_markup=subscribe_kb,
-            link_preview=LinkPreviewOptions(is_disabled=False)
+            "Как подпишешься — жми кнопку «Подписка есть» ✅",
+            reply_markup=subscribe_kb
         )
         return
 
     user_data[user_id]["current_question"] = 0
     user_data[user_id]["scores"] = {1: 0, 2: 0, 3: 0, 4: 0}
     await send_question(message, 0)
+
+@dp.message(F.text == "🚀 Начать тест")
+async def start_test(message: Message):
+    await _do_start_test(message, message.from_user.id)
+
+@dp.callback_query(F.data == "start_test")
+async def start_test_callback(callback: CallbackQuery):
+    await callback.answer()
+    await _do_start_test(callback.message, callback.from_user.id)
 
 # Шаг 3: Вопросы-ответы
 @dp.message(F.text.startswith("1.") | F.text.startswith("2.") | F.text.startswith("3.") | F.text.startswith("4."))
@@ -755,26 +739,25 @@ async def handle_answer(message: Message):
     if current < len(questions):
         await send_question(message, current)
     else:
-        await show_result(message, user_id)
+        await show_result(message, user_id, message.from_user)
 
 # Шаг 4: Результат с картинкой + кнопка "Узнать подробнее"
-async def show_result(message, user_id):
+async def show_result(message, user_id, user):
     scores = user_data[user_id]["scores"]
     scores_by_name = {ID_TO_NAME[k]: v for k, v in scores.items()}
 
     status, value = get_result(scores_by_name)
 
     if status == "need_q11":
-        # value = {name: answer_text} — инвертируем для быстрого поиска
         options = {answer_text: name for name, answer_text in value.items()}
         user_data[user_id]["tiebreaker"] = options
-        keyboard = [[KeyboardButton(text=text)] for text in options.keys()]
-        kb = ReplyKeyboardMarkup(keyboard=keyboard, resize_keyboard=True)
+        buttons = [[InlineKeyboardButton(text=text, callback_data=f"tiebreak_{name}")] for text, name in options.items()]
+        kb = InlineKeyboardMarkup(inline_keyboard=buttons)
         await message.answer(TIEBREAKER_QUESTION, reply_markup=kb)
         return
 
     key = result_to_key(status, value)
-    await send_final_result(message, key, scores)
+    await send_final_result(message, key, scores, user)
 
 # Шаг 4б: Тай-брейкер — вопрос 11
 async def _is_tiebreaker(message: Message) -> bool:
@@ -799,12 +782,49 @@ async def handle_tiebreaker(message: Message):
 
     key = result_to_key(status, value)
     del user_data[user_id]["tiebreaker"]
-    await send_final_result(message, key, scores)
+    await send_final_result(message, key, scores, message.from_user)
+
+@dp.callback_query(F.data.startswith("answer_"))
+async def handle_answer_callback(callback: CallbackQuery):
+    user_id = callback.from_user.id
+    await callback.answer()
+
+    if user_id not in user_data:
+        await callback.message.answer("Нажми /start чтобы начать тест")
+        return
+
+    answer_num = int(callback.data.split("_")[1])
+    user_data[user_id]["scores"][answer_num] += 1
+    user_data[user_id]["current_question"] += 1
+    current = user_data[user_id]["current_question"]
+
+    if current < len(questions):
+        await send_question(callback.message, current)
+    else:
+        await show_result(callback.message, user_id, callback.from_user)
+
+@dp.callback_query(F.data.startswith("tiebreak_"))
+async def handle_tiebreaker_callback(callback: CallbackQuery):
+    user_id = callback.from_user.id
+    await callback.answer()
+
+    if user_id not in user_data or "tiebreaker" not in user_data.get(user_id, {}):
+        await callback.message.answer("Нажми /start чтобы начать тест")
+        return
+
+    psychotype_name = callback.data[len("tiebreak_"):]
+    scores = user_data[user_id]["scores"]
+    scores[NAME_TO_ID[psychotype_name]] += 1
+    scores_by_name = {ID_TO_NAME[k]: v for k, v in scores.items()}
+    status, value = get_result(scores_by_name, answer_11=psychotype_name)
+
+    key = result_to_key(status, value)
+    del user_data[user_id]["tiebreaker"]
+    await send_final_result(callback.message, key, scores, callback.from_user)
 
 # Шаг 5: Оффер + ссылки
-@dp.message(F.text == "📖 Узнать подробнее")
-async def show_offer(message: Message):
-    user_id = message.from_user.id
+async def _do_show_offer(message: Message, user):
+    user_id = user.id
 
     await message.answer(
         consultation_text,
@@ -814,13 +834,22 @@ async def show_offer(message: Message):
 
     await notify_admin(
         f"📖 Открыл оффер!\n"
-        f"Имя: {message.from_user.full_name}\n"
-        f"Username: @{message.from_user.username}"
+        f"Имя: {user.full_name}\n"
+        f"Username: @{user.username}"
     )
 
     # Чистим данные
     if user_id in user_data:
         del user_data[user_id]
+
+@dp.message(F.text == "📖 Узнать подробнее")
+async def show_offer(message: Message):
+    await _do_show_offer(message, message.from_user)
+
+@dp.callback_query(F.data == "show_offer")
+async def show_offer_callback(callback: CallbackQuery):
+    await callback.answer()
+    await _do_show_offer(callback.message, callback.from_user)
 
 
 # === WEB SERVER (keep-alive) ===
