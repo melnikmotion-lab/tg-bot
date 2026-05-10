@@ -5,7 +5,8 @@ from urllib.parse import quote
 from flask import Flask
 from aiogram import Bot, Dispatcher, F
 from aiogram.types import (
-    Message, InlineKeyboardMarkup, InlineKeyboardButton, LinkPreviewOptions,
+    Message, ReplyKeyboardMarkup, ReplyKeyboardRemove, KeyboardButton,
+    InlineKeyboardMarkup, InlineKeyboardButton, LinkPreviewOptions,
     BotCommand, MenuButtonCommands, CallbackQuery
 )
 from aiogram.filters import Command
@@ -567,6 +568,7 @@ def result_to_key(status, value):
 
 async def send_final_result(message, key, scores, user):
     result = results.get(key, "Результат не найден")
+    await message.answer("📊 Готов твой результат!", reply_markup=ReplyKeyboardRemove())
 
     photo_id = result_images.get(key)
     if photo_id:
@@ -599,8 +601,8 @@ async def send_final_result(message, key, scores, user):
     )
 
 def get_keyboard(answers):
-    buttons = [[InlineKeyboardButton(text=answer, callback_data=f"answer_{answer[0]}")] for answer in answers]
-    return InlineKeyboardMarkup(inline_keyboard=buttons)
+    keyboard = [[KeyboardButton(text=answer)] for answer in answers]
+    return ReplyKeyboardMarkup(keyboard=keyboard, resize_keyboard=True)
 
 async def send_question(message, question_index):
     question = questions[question_index]
@@ -737,25 +739,6 @@ async def show_result(message, user_id, user):
     status, value = get_result(scores_by_name)
     key = result_to_key(status, value)
     await send_final_result(message, key, scores, user)
-
-@dp.callback_query(F.data.startswith("answer_"))
-async def handle_answer_callback(callback: CallbackQuery):
-    user_id = callback.from_user.id
-    await callback.answer()
-
-    if user_id not in user_data:
-        await callback.message.answer("Нажми /start чтобы начать тест")
-        return
-
-    answer_num = int(callback.data.split("_")[1])
-    user_data[user_id]["scores"][answer_num] += 1
-    user_data[user_id]["current_question"] += 1
-    current = user_data[user_id]["current_question"]
-
-    if current < len(questions):
-        await send_question(callback.message, current)
-    else:
-        await show_result(callback.message, user_id, callback.from_user)
 
 # Шаг 5: Оффер + ссылки
 async def _do_show_offer(message: Message, user):
