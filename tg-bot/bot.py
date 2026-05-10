@@ -76,7 +76,7 @@ consultation_text = """🔍 <b>Определение психотипа</b>
 
 📹 <b>Формат:</b> видеосозвон
 ⏱ <b>Длительность:</b> 2 часа
-💰 <b>Стоимость:</b> <s>120$</s> → <b>100$</b> — в течение 24 часов после теста
+💰 <b>Стоимость:</b> <s>125$</s> → <b>100$</b> — в течение 24 часов после теста
 
 В конце созвона вы получите запись консультации в личный чат в Telegram и возможность задавать любые вопросы о вашем психотипе в течение 14 дней 📅"""
 
@@ -91,8 +91,8 @@ result_images = {
     (4,): "AgACAgIAAxkBAAPsac0Tj7JE6SkRMpcnZnfNPTbuWr4AAuwZaxu1eWhK61m0rqxmH8ABAAMCAAN5AAM6BA",
     (1, 2): "AgACAgIAAxkBAAPjac0TORBB8y2mzMejgEqMmAsSuAQAAq0Xaxvo8WhKweDGGGjPiZoBAAMCAAN5AAM6BA",
     (1, 3): "AgACAgIAAxkBAAM0ac0JTA9LiWQZmg4sq8b0WGo4NywAAhUWaxsLw2lKvUgy1afbGBQBAAMCAAN5AAM6BA",
-    (1, 4): "AgACAgIAAxkBAAPsac0Tj7JE6SkRMpcnZnfNPTbuWr4AAuwZaxu1eWhK61m0rqxmH8ABAAMCAAN5AAM6BA",
-    (2, 3): "AgACAgIAAxkBAAPrac0Tj6JQX-RdTpraes0r64TW-Y4AAusZaxu1eWhKH1u0yufZsa0BAAMCAAN5AAM6BA",
+    (1, 4): "AgACAgIAAxkBAAPxac0TzWtqdxPhP6ZgSTSRwKbV-NIAAu0Zaxu1eWhK2rHzHvI_itUBAAMCAAN5AAM6BA",
+    (2, 3): "AgACAgIAAxkBAAPyac0TzVPqSo9hi6tl8tCyfnN_bEYAAu8Zaxu1eWhKkkXPXzJywMkBAAMCAAN5AAM6BA",
     (2, 4): "AgACAgIAAxkBAAPzac0TzUh2pAkBv-I9op08uq4ZCCwAAvEZaxu1eWhKNfZdqpMoRwoBAAMCAAN5AAM6BA",
     (3, 4): "AgACAgIAAxkBAAP0ac0TzZfhRS6nK53KwgJkq6EJW6QAAvMZaxu1eWhKn5b0N5QDLJMBAAMCAAN5AAM6BA",
 }
@@ -555,27 +555,38 @@ ID_TO_NAME = {v: k for k, v in NAME_TO_ID.items()}
 
 def get_result(scores_by_name, answer_11=None):
     sorted_results = sorted(scores_by_name.items(), key=lambda x: x[1], reverse=True)
-    first = sorted_results[0][1]
-    second = sorted_results[1][1]
-    third = sorted_results[2][1]
+    first_score = sorted_results[0][1]
+    second_score = sorted_results[1][1]
 
-    if first == second == third:
+    # Ничья на первом месте — q11 определяет победителя
+    tied_first = [name for name, score in sorted_results if score == first_score]
+    if len(tied_first) > 1:
         if answer_11 is None:
-            top_three = [name for name, score in sorted_results[:3]]
-            return "need_q11", {k: v for k, v in question_11.items() if k in top_three}
+            return "need_q11", {k: v for k, v in question_11.items() if k in tied_first}
         else:
-            return "single", answer_11
-    elif first > second:
-        return "single", sorted_results[0][0]
-    else:
-        return "double", f"{sorted_results[0][0]} + {sorted_results[1][0]}"
+            # Победитель определён, второй — лучший из оставшихся
+            remaining = [name for name, score in sorted_results if name != answer_11]
+            second_name = remaining[0]
+            return "double", f"{answer_11} + {second_name}"
+
+    # Первый ясен
+    first_name = sorted_results[0][0]
+
+    # Ничья на втором месте — q11 определяет второго
+    tied_second = [name for name, score in sorted_results[1:] if score == second_score]
+    if len(tied_second) > 1:
+        if answer_11 is None:
+            return "need_q11", {k: v for k, v in question_11.items() if k in tied_second}
+        else:
+            return "double", f"{first_name} + {answer_11}"
+
+    # Всё ясно — возвращаем двойной результат
+    second_name = sorted_results[1][0]
+    return "double", f"{first_name} + {second_name}"
 
 def result_to_key(status, value):
-    if status == "single":
-        return (NAME_TO_ID[value],)
-    else:
-        names = value.split(" + ")
-        return tuple(sorted(NAME_TO_ID[n] for n in names))
+    names = value.split(" + ")
+    return tuple(sorted(NAME_TO_ID[n] for n in names))
 
 async def send_final_result(message, key, scores, user):
     result = results.get(key, "Результат не найден")
