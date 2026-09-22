@@ -202,6 +202,7 @@ const HTML = `<!DOCTYPE html>
 
 <header class="hero">
   <div class="wrap">
+    <img src="https://raw.githubusercontent.com/melnikmotion-lab/tg-bot/claude/shared-link-access-95iimd/landing/logo.png" width="1280" height="720" alt="ПриродоВед: улыбающийся человек, нарисованный от руки">
     <h1>Твоё призвание</h1>
     <p class="lead">Для тех, кто не удовлетворён своей работой, находится в поиске новой деятельности и способа себя реализовать. И особенно для тех, кому 30+, а вы так и не поняли, кем хотите стать, когда вырастете.</p>
     <a class="btn" href="#leadForm">Перейти к заявке</a>
