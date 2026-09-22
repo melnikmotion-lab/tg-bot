@@ -580,12 +580,12 @@ app.post("/api/lead", async (c) => {
   }
 
   let text =
-    "🆕 <b>Новая заявка с сайта</b>\\n\\n" +
-    `<b>Имя:</b> ${escapeHtml(name)}\\n` +
-    `<b>Телеграм:</b> ${escapeHtml(contact)}\\n` +
+    "🆕 <b>Новая заявка с сайта</b>\n\n" +
+    `<b>Имя:</b> ${escapeHtml(name)}\n` +
+    `<b>Телеграм:</b> ${escapeHtml(contact)}\n` +
     `<b>Интересует:</b> ${escapeHtml(service)}`;
   if (message) {
-    text += `\\n\\n<b>Что беспокоит:</b>\\n${escapeHtml(message)}`;
+    text += `\n\n<b>Что беспокоит:</b>\n${escapeHtml(message)}`;
   }
 
   const payload: any = {
