@@ -434,7 +434,7 @@ const HTML = `<!DOCTYPE html>
 
 <script>
   var ENDPOINT = "/api/lead";
-  var TG_USER  = "";
+  var TG_USER  = "Alexey_melnik";
 
   var form = document.getElementById("leadForm");
   var done = document.getElementById("done");
