@@ -82,7 +82,6 @@ const HTML = `<!DOCTYPE html>
 
   /* two formats */
   .formats { display: grid; gap: 24px; margin-top: 28px; }
-  @media (min-width: 860px) { .formats { grid-template-columns: 1fr 1fr; } }
   .card {
     display: flex;
     flex-direction: column;
@@ -233,7 +232,7 @@ const HTML = `<!DOCTYPE html>
   </section>
 
   <section id="formats">
-    <div class="wrap wide">
+    <div class="wrap">
       <h2>Два формата работы</h2>
 
       <div class="formats">
