@@ -103,6 +103,7 @@ const HTML = `<!DOCTYPE html>
   .card dd li { margin-bottom: .4em; }
   .card .btn { margin-top: auto; align-self: flex-start; }
   .card .spots { font-weight: 600; margin: -8px 0 22px; }
+  .card .price-sum { font: 800 clamp(1.8rem, 6vw, 2.2rem)/1.1 var(--display); margin-top: 4px; }
   /* touch screens: colour pours in from the bottom as the card scrolls up */
   @media (hover: none) {
     .card { position: relative; overflow: hidden; isolation: isolate; }
@@ -232,7 +233,7 @@ const HTML = `<!DOCTYPE html>
           <div><dt>Формат</dt><dd>Видеосозвон в Телеграме.</dd></div>
           <div><dt>Длительность</dt><dd>60–90 минут.</dd></div>
           <div><dt>После диагностики</dt><dd>У вас навсегда останется аудио- и видеозапись, чтобы вы могли в любой момент вернуться к ней.</dd></div>
-          <div><dt>Стоимость</dt><dd>$15</dd></div>
+          <div><dt>Стоимость</dt><dd class="price-sum">$15</dd></div>
         </dl>
         <p class="spots">💡 В этом месяце я возьму <b>3 человека</b> на диагностику в пилотном формате по этой стоимости.</p>
         <a class="btn dark" href="#leadForm">Записаться на диагностику</a>
