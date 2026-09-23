@@ -8,7 +8,7 @@ const HTML = `<!DOCTYPE html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ПриродоВед: диагностика</title>
-<meta name="description" content="Личная диагностика 1-1: определим вашу индивидуальную природу и найдём дело, в котором вы раскроетесь сильнее всего.">
+<meta name="description" content="Диагностика: как найти своё дело, когда не знаешь, чего хочешь. Двухчасовой видеосозвон в Телеграме, $75.">
 <meta name="theme-color" content="#B569DF">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -80,8 +80,6 @@ const HTML = `<!DOCTYPE html>
   dl.elements dd { margin: 2px 0 0; color: var(--muted); }
   .accent { font-weight: 700; font-style: italic; }
 
-  /* two formats */
-  .formats { display: grid; gap: 24px; margin-top: 28px; }
   .card {
     display: flex;
     flex-direction: column;
@@ -103,7 +101,6 @@ const HTML = `<!DOCTYPE html>
   .card dd { margin: 2px 0 0; }
   .card dd ul { margin: 4px 0 0; padding-left: 1.15em; }
   .card dd li { margin-bottom: .4em; }
-  .card .spots { font-weight: 600; margin: 0 0 18px; }
   .card .btn { margin-top: auto; align-self: flex-start; }
   /* touch screens: colour pours in from the bottom as the card scrolls up */
   @media (hover: none) {
@@ -121,37 +118,6 @@ const HTML = `<!DOCTYPE html>
     .card.filled::before { transform: scaleY(1); }
   }
 
-  /* details */
-  .detail + .detail { padding-top: 16px; }
-  .detail h3 { margin: 32px 0 10px; }
-  .detail ul { margin: 0 0 1em; padding-left: 1.2em; max-width: 62ch; }
-  .detail li { margin-bottom: .45em; }
-  .detail .plain { margin-bottom: 0; }
-
-  /* collapsible */
-  details.more > summary {
-    list-style: none;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    cursor: pointer;
-    padding: 22px 26px;
-    border: 3px solid var(--ink);
-    border-radius: 28px;
-    background: #fff;
-    transition: background-color .25s ease, transform .25s ease;
-  }
-  details.more > summary::-webkit-details-marker { display: none; }
-  details.more > summary h2 { margin: 0; }
-  details.more > summary::after { content: "+"; font: 600 2.2rem/1 var(--text); flex: none; }
-  details.more[open] > summary::after { content: "−"; }
-  @media (hover: hover) {
-    details.more > summary:hover { background: var(--accent); transform: scale(1.015); }
-  }
-  details.more > .more-body { padding-top: 8px; }
-  details.more > .more-body > h3:first-child { margin-top: 24px; }
-
   /* reviews */
   .reviews figure { margin: 0 0 20px; }
   .reviews img { border-radius: 24px; width: 100%; max-width: 661px; }
@@ -162,7 +128,7 @@ const HTML = `<!DOCTYPE html>
   .apply .sub { color: var(--muted); margin-bottom: 28px; }
   form { max-width: 560px; scroll-margin-top: 24px; }
   .field { margin-bottom: 22px; }
-  label, legend { display: block; font-weight: 600; margin-bottom: 8px; padding: 0; }
+  label { display: block; font-weight: 600; margin-bottom: 8px; padding: 0; }
   .opt { font-weight: 400; color: var(--muted); }
   input[type=text], textarea {
     width: 100%;
@@ -176,20 +142,6 @@ const HTML = `<!DOCTYPE html>
   textarea { min-height: 120px; resize: vertical; }
   input[aria-invalid=true], textarea[aria-invalid=true] { border-color: var(--error); }
   .err { color: var(--error); font-size: .95rem; margin: 6px 0 0; min-height: 1.2em; }
-  fieldset { border: 0; padding: 0; margin: 0 0 22px; }
-  .choices { display: flex; flex-wrap: wrap; gap: 10px; }
-  .choices input { position: absolute; opacity: 0; width: 1px; height: 1px; }
-  .choices label {
-    margin: 0;
-    font-weight: 500;
-    padding: .7em 1.2em;
-    border: 3px solid var(--ink);
-    border-radius: 999px;
-    cursor: pointer;
-    background: #fff;
-  }
-  .choices input:checked + label { background: var(--accent); font-weight: 600; }
-  .choices input:focus-visible + label { outline: 3px solid var(--ink); outline-offset: 3px; }
   .hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
   .privacy { font-size: .95rem; color: var(--muted); margin: 14px 0 0; }
   #formError { margin-top: 16px; color: var(--error); font-weight: 500; }
@@ -203,13 +155,25 @@ const HTML = `<!DOCTYPE html>
 
   @media (max-width: 520px) {
     .card { padding: 26px 20px; border-radius: 32px; }
-    details.more > summary { padding: 18px 20px; }
   }
   @media (prefers-reduced-motion: reduce) {
     html { scroll-behavior: auto; }
-    .btn, .card, .card::before, details.more > summary { transition: none; }
-    .btn:hover, .card:hover, details.more > summary:hover { transform: none !important; }
+    .btn, .card, .card::before { transition: none; }
+    .btn:hover, .card:hover { transform: none !important; }
   }
+
+  /* page text */
+  .hero .tagline { font: 600 clamp(1.15rem, 3.4vw, 1.4rem)/1.35 var(--display); margin: 16px 0 0; max-width: 30ch; }
+  .skip { font-size: 1rem; color: var(--muted); margin: 18px 0 0; }
+  .skip a { font-weight: 600; }
+  main h3 { margin: 28px 0 10px; }
+  main ul { margin: 0 0 1em; padding-left: 1.2em; max-width: 62ch; }
+  main li { margin-bottom: .45em; }
+  .callout { background: var(--accent); border: 3px solid var(--ink); border-radius: 28px; padding: 22px 24px; font-weight: 600; max-width: 62ch; }
+  .callout p { margin: 0; }
+  .steps { list-style: none; padding: 0; display: grid; gap: 14px; }
+  .steps li { margin: 0; }
+  .steps b { font-family: var(--display); }
 </style>
 </head>
 <body>
@@ -217,9 +181,9 @@ const HTML = `<!DOCTYPE html>
 <header class="hero">
   <div class="wrap">
     <img src="https://raw.githubusercontent.com/melnikmotion-lab/tg-bot/claude/shared-link-access-95iimd/landing/logo-diagnostika.png" width="1280" height="720" alt="ПриродоВед: улыбающийся человек, нарисованный от руки">
-    <h1>Твоё призвание</h1>
-    <p class="lead">Для тех, кто не удовлетворён своей работой, находится в поиске новой деятельности и способа себя реализовать. И особенно для тех, кому 30+, а вы так и не поняли, кем хотите стать, когда вырастете.</p>
-    <a class="btn" href="#leadForm">Перейти к заявке</a>
+    <h1>Диагностика</h1>
+    <p class="tagline">Как найти своё дело, когда не знаешь, чего хочешь?</p>
+    <p class="skip"><a href="#offer">Сразу к формату и стоимости</a></p>
   </div>
 </header>
 
@@ -228,71 +192,49 @@ const HTML = `<!DOCTYPE html>
     <div class="wrap">
       <h2>Давайте честно</h2>
       <p>Вы уже не первый раз пробуете что-то новое. Мечтали, горели, занимались этим — и снова разочаровывались, оказываясь в той же самой начальной точке, где опять приходится выбирать.</p>
-      <p>С каждым разом страх выбора парализует всё сильнее: а вдруг опять не то.</p>
-      <p>Страх выбора происходит из непонимания себя и своих врождённых склонностей. Если вы не понимаете природу своей личности и её самые сильные стороны, то даже смена работы, покупка курса «Как быстро заработать на ИИ в 2026 году без вложений» или новая мотивационная книга не принесут ничего, кроме временного облегчения и нового витка поисков.</p>
-      <p>А когда вы точно знаете, к какой природе деятельности у вас талант, вы больше не играете в рулетку, а уверены в каждом своём шаге, и даже деятельность, в которой вы уже выгорели, может раскрыться по-новому. Такое понимание — преимущество на всю жизнь, которым большинство не пользуется просто потому, что не понимают природу своей личности.</p>
+      <p>Смена работы не помогает. Курсы не помогают. Мотивационные ролики дают 30 минут облегчения — а потом всё возвращается.</p>
+      <p>С каждым разом страх выбора парализует всё сильнее — а вдруг опять не то.</p>
+      <p>Страх выбора происходит из непонимания себя и своих врождённых склонностей. Когда вы точно знаете, к какой природе деятельности у вас талант, — вы больше не играете в рулетку, а уверены в каждом своём шаге.</p>
+      <p>Такое понимание — преимущество на всю жизнь, которым большинство не пользуется просто потому, что не понимают природу своей личности.</p>
     </div>
   </section>
 
   <section>
     <div class="wrap">
-      <h2>Из чего складывается понимание себя</h2>
+      <h2>Из чего складывается это понимание</h2>
       <dl class="elements">
-        <div><dt>Врождённые склонности и таланты</dt><dd>То, что вам даётся легче, чем большинству, даже без особых усилий.</dd></div>
-        <div><dt>Мотивация</dt><dd>Внутренняя потребность, которую нужно закрывать независимо от того, какой профессией вы занимаетесь.</dd></div>
+        <div><dt>Ваши врождённые склонности и таланты</dt><dd>То, что вам даётся легче, чем большинству, даже без особых усилий.</dd></div>
+        <div><dt>Ваша мотивация</dt><dd>Внутренняя потребность, которую нужно закрывать независимо от того, какой профессией вы занимаетесь.</dd></div>
         <div><dt>Социальная роль</dt><dd>Обязательства, которые вы естественно берёте на себя в социуме, при этом чувствуя себя на своём месте.</dd></div>
       </dl>
       <p class="accent">Влияя на эти элементы, мы меняем качество решений и результаты, которые вы получаете в жизни.</p>
     </div>
   </section>
 
-  <section id="formats">
+  <section>
     <div class="wrap">
-      <div class="formats">
-        <article class="card">
-          <h3>Диагностика</h3>
-          <p class="tagline">Как найти своё дело, когда не знаешь, чего хочешь?</p>
-          <dl>
-            <div><dt>Формат</dt><dd>2-часовой видеосозвон в Телеграме.</dd></div>
-            <div><dt>Что входит</dt><dd>
-              <ul>
-                <li>Личная диагностика 1-1: определим вашу индивидуальную природу.</li>
-                <li>Аудио- и видеозапись, которая остаётся у вас навсегда.</li>
-              </ul>
-            </dd></div>
-            <div><dt>Что на выходе</dt><dd>
-              <ul>
-                <li>Вы избавитесь от страха выбора: узнав свои врождённые склонности и таланты, выбор деятельности перестанет быть лотереей.</li>
-                <li>Поймёте, в какой сфере или виде деятельности вы сможете раскрыть свой талант сильнее всего.</li>
-              </ul>
-            </dd></div>
-            <div><dt>Стоимость</dt><dd>$75</dd></div>
-          </dl>
-          <a class="btn dark" href="#leadForm">Записаться на диагностику</a>
-        </article>
-      </div>
+      <h2>Цель консультации</h2>
+      <p>Избавить вас от страха искать или менять деятельность, опираясь на вашу индивидуальную природу, в которой заложены врождённые склонности и таланты, и найти персональный путь к делу, в котором вы раскроетесь максимально сильно.</p>
+      <h3>Результат консультации</h3>
+      <ul>
+        <li>Вы избавитесь от страха выбора — узнав свои врождённые склонности и таланты, выбор деятельности перестанет быть лотереей.</li>
+        <li>Поймёте, в какой сфере или виде деятельности вы сможете раскрыть свой талант сильнее всего.</li>
+      </ul>
     </div>
   </section>
 
-  <section class="detail">
+  <section id="offer">
     <div class="wrap">
-      <details class="more">
-        <summary><h2>Диагностика подробнее</h2></summary>
-        <div class="more-body">
-          <p>Цель диагностики — избавить вас от страха искать или менять деятельность, опираясь на вашу индивидуальную природу, в которой заложены врождённые склонности и таланты, и найти персональный путь к делу, в котором вы раскроетесь максимально сильно.</p>
-
-          <h3>Как проходит</h3>
-          <p>Это личная встреча 1-1 в формате видеосозвона в Телеграме. На ней:</p>
-          <ul>
-            <li>определим вашу индивидуальную природу и разберём, что вам мешает жить в согласии с ней;</li>
-            <li>вы поймёте, что вами по-настоящему движет и чего вы хотите на самом деле;</li>
-            <li>вы увидите, где годами боролись не с той причиной, списывая на лень, характер или «не повезло с работой».</li>
-          </ul>
-
-          <h3>После диагностики</h3>
-          <p>У вас навсегда останется аудио- и видеозапись, чтобы вы могли в любой момент вернуться к ней.</p>
-        </div>
-      </details>
+      <article class="card">
+        <h3>Диагностика</h3>
+        <dl>
+          <div><dt>Формат</dt><dd>Двухчасовой видеосозвон в Телеграме.</dd></div>
+          <div><dt>Длительность</dt><dd>2 часа.</dd></div>
+          <div><dt>После диагностики</dt><dd>У вас навсегда останется аудио- и видеозапись, чтобы вы могли в любой момент вернуться к ней.</dd></div>
+          <div><dt>Стоимость</dt><dd>$75</dd></div>
+        </dl>
+        <a class="btn dark" href="#leadForm">Записаться на диагностику</a>
+      </article>
     </div>
   </section>
 
@@ -306,8 +248,8 @@ const HTML = `<!DOCTYPE html>
 
   <section class="apply" id="apply">
     <div class="wrap">
-      <h2>Оставить заявку</h2>
-      <p class="sub">Напишу вам в Телеграме, отвечу на вопросы и договоримся о времени.</p>
+      <h2>Записаться на диагностику</h2>
+      <p class="sub">Оставьте заявку или <a href="https://t.me/Alexey_melnik?text=%D0%A5%D0%BE%D1%87%D1%83%20%D0%B4%D0%B8%D0%B0%D0%B3%D0%BD%D0%BE%D1%81%D1%82%D0%B8%D0%BA%D1%83" target="_blank" rel="noopener">напишите мне в Телеграме «Хочу диагностику»</a>, и я расскажу все подробности.</p>
 
       <form id="leadForm" novalidate>
         <div class="field">
