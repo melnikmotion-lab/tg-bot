@@ -105,6 +105,19 @@ const HTML = `<!DOCTYPE html>
   .card dd li { margin-bottom: .4em; }
   .card .spots { font-weight: 600; margin: 0 0 18px; }
   .card .btn { margin-top: auto; align-self: flex-start; }
+  /* touch screens: orange pours in from the bottom as the card scrolls up */
+  @media (hover: none) {
+    .card { position: relative; overflow: hidden; isolation: isolate; }
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: var(--orange);
+      transform-origin: bottom;
+      transform: scaleY(var(--fill, 0));
+      z-index: -1;
+    }
+  }
 
   /* details */
   .detail + .detail { padding-top: 16px; }
@@ -448,6 +461,20 @@ const HTML = `<!DOCTYPE html>
       document.getElementById(a.dataset.service === "diag" ? "s-diag" : "s-path").checked = true;
     });
   });
+
+  if (window.matchMedia && window.matchMedia("(hover: none)").matches) {
+    var cards = document.querySelectorAll(".card");
+    var updateFill = function () {
+      var vh = window.innerHeight;
+      cards.forEach(function (c) {
+        var p = (vh - c.getBoundingClientRect().top) / (vh * 0.6);
+        c.style.setProperty("--fill", Math.max(0, Math.min(1, p)).toFixed(3));
+      });
+    };
+    window.addEventListener("scroll", updateFill, { passive: true });
+    window.addEventListener("resize", updateFill);
+    updateFill();
+  }
 
   function setErr(input, errId, msg) {
     document.getElementById(errId).textContent = msg;
