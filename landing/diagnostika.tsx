@@ -8,7 +8,7 @@ const HTML = `<!DOCTYPE html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ПриродоВед: диагностика</title>
-<meta name="description" content="Диагностика: как найти своё дело, когда не знаешь, чего хочешь. Двухчасовой видеосозвон в Телеграме, $75.">
+<meta name="description" content="Диагностика: как найти своё дело, когда не знаешь, чего хочешь. Видеосозвон в Телеграме, 60–90 минут, $15.">
 <meta name="theme-color" content="#B569DF">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -163,7 +163,7 @@ const HTML = `<!DOCTYPE html>
   }
 
   /* page text */
-  .hero .tagline { font: 600 clamp(1.15rem, 3.4vw, 1.4rem)/1.35 var(--display); margin: 16px 0 0; max-width: 30ch; }
+  .hero .tagline { font: 600 clamp(1.15rem, 3.4vw, 1.4rem)/1.35 var(--display); margin: 16px 0 28px; max-width: 30ch; }
   .skip { font-size: 1rem; color: var(--muted); margin: 18px 0 0; }
   .skip a { font-weight: 600; }
   main h3 { margin: 28px 0 10px; }
@@ -183,7 +183,7 @@ const HTML = `<!DOCTYPE html>
     <img src="https://raw.githubusercontent.com/melnikmotion-lab/tg-bot/claude/shared-link-access-95iimd/landing/logo-diagnostika.png" width="1280" height="720" alt="ПриродоВед: улыбающийся человек, нарисованный от руки">
     <h1>Диагностика</h1>
     <p class="tagline">Как найти своё дело, когда не знаешь, чего хочешь?</p>
-    <p class="skip"><a href="#offer">Сразу к формату и стоимости</a></p>
+    <a class="btn" href="#leadForm">Перейти к заявке</a>
   </div>
 </header>
 
@@ -228,10 +228,10 @@ const HTML = `<!DOCTYPE html>
       <article class="card">
         <h3>Диагностика</h3>
         <dl>
-          <div><dt>Формат</dt><dd>Двухчасовой видеосозвон в Телеграме.</dd></div>
-          <div><dt>Длительность</dt><dd>2 часа.</dd></div>
+          <div><dt>Формат</dt><dd>Видеосозвон в Телеграме.</dd></div>
+          <div><dt>Длительность</dt><dd>60–90 минут.</dd></div>
           <div><dt>После диагностики</dt><dd>У вас навсегда останется аудио- и видеозапись, чтобы вы могли в любой момент вернуться к ней.</dd></div>
-          <div><dt>Стоимость</dt><dd>$75</dd></div>
+          <div><dt>Стоимость</dt><dd>$15</dd></div>
         </dl>
         <a class="btn dark" href="#leadForm">Записаться на диагностику</a>
       </article>
@@ -248,8 +248,8 @@ const HTML = `<!DOCTYPE html>
 
   <section class="apply" id="apply">
     <div class="wrap">
-      <h2>Записаться на диагностику</h2>
-      <p class="sub">Оставьте заявку или <a href="https://t.me/Alexey_melnik?text=%D0%A5%D0%BE%D1%87%D1%83%20%D0%B4%D0%B8%D0%B0%D0%B3%D0%BD%D0%BE%D1%81%D1%82%D0%B8%D0%BA%D1%83" target="_blank" rel="noopener">напишите мне в Телеграме «Хочу диагностику»</a>, и я расскажу все подробности.</p>
+      <h2>Оставить заявку</h2>
+      <p class="sub">Напишу вам в Телеграме, отвечу на вопросы и договоримся о времени.</p>
 
       <form id="leadForm" novalidate>
         <div class="field">
