@@ -102,6 +102,7 @@ const HTML = `<!DOCTYPE html>
   .card dd ul { margin: 4px 0 0; padding-left: 1.15em; }
   .card dd li { margin-bottom: .4em; }
   .card .btn { margin-top: auto; align-self: flex-start; }
+  .card .spots { font-weight: 600; margin: -8px 0 22px; }
   /* touch screens: colour pours in from the bottom as the card scrolls up */
   @media (hover: none) {
     .card { position: relative; overflow: hidden; isolation: isolate; }
@@ -190,12 +191,6 @@ const HTML = `<!DOCTYPE html>
 <main>
   <section>
     <div class="wrap">
-      <div class="callout"><p>💡 В этом месяце я возьму <b>3 человека</b> на диагностику в пилотном формате по стоимости <b>$15</b>.</p></div>
-    </div>
-  </section>
-
-  <section>
-    <div class="wrap">
       <h2>Давайте честно</h2>
       <p>Вы уже не первый раз пробуете что-то новое. Мечтали, горели, занимались этим — и снова разочаровывались, оказываясь в той же самой начальной точке, где опять приходится выбирать.</p>
       <p>Смена работы не помогает. Курсы не помогают. Мотивационные ролики дают 30 минут облегчения — а потом всё возвращается.</p>
@@ -239,6 +234,7 @@ const HTML = `<!DOCTYPE html>
           <div><dt>После диагностики</dt><dd>У вас навсегда останется аудио- и видеозапись, чтобы вы могли в любой момент вернуться к ней.</dd></div>
           <div><dt>Стоимость</dt><dd>$15</dd></div>
         </dl>
+        <p class="spots">💡 В этом месяце я возьму <b>3 человека</b> на диагностику в пилотном формате по этой стоимости.</p>
         <a class="btn dark" href="#leadForm">Записаться на диагностику</a>
       </article>
     </div>
