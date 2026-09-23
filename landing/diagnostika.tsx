@@ -8,7 +8,7 @@ const HTML = `<!DOCTYPE html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ПриродоВед: диагностика</title>
-<meta name="description" content="Диагностика: как найти своё дело, когда не знаешь, чего хочешь. Видеосозвон в Телеграме, 60–90 минут, $15.">
+<meta name="description" content="Диагностика: в чём ваша сила и где она раскроется на максимум. Видеосозвон в Телеграме, 60–90 минут, $15.">
 <meta name="theme-color" content="#B569DF">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -182,12 +182,18 @@ const HTML = `<!DOCTYPE html>
   <div class="wrap">
     <img src="https://raw.githubusercontent.com/melnikmotion-lab/tg-bot/claude/shared-link-access-95iimd/landing/logo-diagnostika.png" width="1280" height="720" alt="ПриродоВед: улыбающийся человек, нарисованный от руки">
     <h1>Диагностика</h1>
-    <p class="tagline">Как найти своё дело, когда не знаешь, чего хочешь?</p>
+    <p class="tagline">В чём ваша сила и где она раскроется на максимум</p>
     <a class="btn" href="#leadForm">Перейти к заявке</a>
   </div>
 </header>
 
 <main>
+  <section>
+    <div class="wrap">
+      <div class="callout"><p>💡 В этом месяце я возьму <b>3 человека</b> на диагностику в пилотном формате по стоимости <b>$15</b>.</p></div>
+    </div>
+  </section>
+
   <section>
     <div class="wrap">
       <h2>Давайте честно</h2>
