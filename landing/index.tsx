@@ -114,9 +114,11 @@ const HTML = `<!DOCTYPE html>
       inset: 0;
       background: var(--orange);
       transform-origin: bottom;
-      transform: scaleY(var(--fill, 0));
+      transform: scaleY(0);
+      transition: transform .9s cubic-bezier(.22, .61, .36, 1);
       z-index: -1;
     }
+    .card.filled::before { transform: scaleY(1); }
   }
 
   /* details */
@@ -205,7 +207,7 @@ const HTML = `<!DOCTYPE html>
   }
   @media (prefers-reduced-motion: reduce) {
     html { scroll-behavior: auto; }
-    .btn, .card, details.more > summary { transition: none; }
+    .btn, .card, .card::before, details.more > summary { transition: none; }
     .btn:hover, .card:hover, details.more > summary:hover { transform: none !important; }
   }
 </style>
@@ -462,18 +464,13 @@ const HTML = `<!DOCTYPE html>
     });
   });
 
-  if (window.matchMedia && window.matchMedia("(hover: none)").matches) {
-    var cards = document.querySelectorAll(".card");
-    var updateFill = function () {
-      var vh = window.innerHeight;
-      cards.forEach(function (c) {
-        var p = (vh - c.getBoundingClientRect().top) / (vh * 0.6);
-        c.style.setProperty("--fill", Math.max(0, Math.min(1, p)).toFixed(3));
+  if (window.matchMedia && window.matchMedia("(hover: none)").matches && "IntersectionObserver" in window) {
+    var fillObserver = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        e.target.classList.toggle("filled", e.isIntersecting || e.boundingClientRect.top < 0);
       });
-    };
-    window.addEventListener("scroll", updateFill, { passive: true });
-    window.addEventListener("resize", updateFill);
-    updateFill();
+    }, { rootMargin: "0px 0px -35% 0px" });
+    document.querySelectorAll(".card").forEach(function (c) { fillObserver.observe(c); });
   }
 
   function setErr(input, errId, msg) {
