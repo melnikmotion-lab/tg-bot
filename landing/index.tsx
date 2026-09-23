@@ -115,7 +115,7 @@ const HTML = `<!DOCTYPE html>
       background: var(--orange);
       transform-origin: bottom;
       transform: scaleY(0);
-      transition: transform .9s cubic-bezier(.22, .61, .36, 1);
+      transition: transform 1s cubic-bezier(.45, 0, .55, 1);
       z-index: -1;
     }
     .card.filled::before { transform: scaleY(1); }
