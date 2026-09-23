@@ -7,8 +7,8 @@ const HTML = `<!DOCTYPE html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ПриродоВед: твоё призвание</title>
-<meta name="description" content="Два формата работы: диагностика и сопровождение. Найдём направление, в котором вы раскроетесь сильнее всего.">
+<title>ПриродоВед: сопровождение</title>
+<meta name="description" content="60 дней сопровождения: найдём точное направление вашей реализации и выстроим фундамент, на который можно опираться всегда.">
 <meta name="theme-color" content="#FDA408">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -248,31 +248,7 @@ const HTML = `<!DOCTYPE html>
 
   <section id="formats">
     <div class="wrap">
-      <h2>Два формата работы</h2>
-
       <div class="formats">
-        <article class="card">
-          <h3>Диагностика</h3>
-          <p class="tagline">Как найти своё дело, когда не знаешь, чего хочешь?</p>
-          <dl>
-            <div><dt>Формат</dt><dd>2-часовой видеосозвон в Телеграме.</dd></div>
-            <div><dt>Что входит</dt><dd>
-              <ul>
-                <li>Личная диагностика 1-1: определим вашу индивидуальную природу.</li>
-                <li>Аудио- и видеозапись, которая остаётся у вас навсегда.</li>
-              </ul>
-            </dd></div>
-            <div><dt>Что на выходе</dt><dd>
-              <ul>
-                <li>Вы избавитесь от страха выбора: узнав свои врождённые склонности и таланты, выбор деятельности перестанет быть лотереей.</li>
-                <li>Поймёте, в какой сфере или виде деятельности вы сможете раскрыть свой талант сильнее всего.</li>
-              </ul>
-            </dd></div>
-            <div><dt>Стоимость</dt><dd>$75</dd></div>
-          </dl>
-          <a class="btn dark" href="#leadForm" data-service="diag">Записаться на диагностику</a>
-        </article>
-
         <article class="card">
           <h3>Сопровождение</h3>
           <p class="tagline">Дело, ради которого ты живёшь. Найдём точное направление вашей реализации за 60 дней.</p>
@@ -297,31 +273,9 @@ const HTML = `<!DOCTYPE html>
             <div><dt>Стоимость</dt><dd>$800, можно платить по $100 в неделю.</dd></div>
           </dl>
           <p class="spots">В этом месяце беру 5 человек.</p>
-          <a class="btn dark" href="#leadForm" data-service="path">Хочу в сопровождение</a>
+          <a class="btn dark" href="#leadForm">Хочу в сопровождение</a>
         </article>
       </div>
-    </div>
-  </section>
-
-  <section class="detail">
-    <div class="wrap">
-      <details class="more">
-        <summary><h2>Диагностика подробнее</h2></summary>
-        <div class="more-body">
-          <p>Цель диагностики — избавить вас от страха искать или менять деятельность, опираясь на вашу индивидуальную природу, в которой заложены врождённые склонности и таланты, и найти персональный путь к делу, в котором вы раскроетесь максимально сильно.</p>
-
-          <h3>Как проходит</h3>
-          <p>Это личная встреча 1-1 в формате видеосозвона в Телеграме. На ней:</p>
-          <ul>
-            <li>определим вашу индивидуальную природу и разберём, что вам мешает жить в согласии с ней;</li>
-            <li>вы поймёте, что вами по-настоящему движет и чего вы хотите на самом деле;</li>
-            <li>вы увидите, где годами боролись не с той причиной, списывая на лень, характер или «не повезло с работой».</li>
-          </ul>
-
-          <h3>После диагностики</h3>
-          <p>У вас навсегда останется аудио- и видеозапись, чтобы вы могли в любой момент вернуться к ней.</p>
-        </div>
-      </details>
     </div>
   </section>
 
@@ -393,7 +347,7 @@ const HTML = `<!DOCTYPE html>
   <section class="apply" id="apply">
     <div class="wrap">
       <h2>Оставить заявку</h2>
-      <p class="sub">Напишу вам в Телеграме и отвечу на вопросы. Не знаете, какой формат вам подходит? Так и отметьте, подскажу.</p>
+      <p class="sub">Напишу вам в Телеграме, отвечу на вопросы и договоримся о времени.</p>
 
       <form id="leadForm" novalidate>
         <div class="field">
@@ -407,15 +361,6 @@ const HTML = `<!DOCTYPE html>
           <input type="text" id="contact" name="contact" placeholder="@ник или номер телефона" autocomplete="off" maxlength="80" required>
           <p class="err" id="contactErr" aria-live="polite"></p>
         </div>
-
-        <fieldset>
-          <legend>Что вас интересует</legend>
-          <div class="choices">
-            <input type="radio" name="service" id="s-diag" value="Диагностика"><label for="s-diag">Диагностика</label>
-            <input type="radio" name="service" id="s-path" value="Сопровождение"><label for="s-path">Сопровождение</label>
-            <input type="radio" name="service" id="s-unsure" value="Не знаю, подскажите" checked><label for="s-unsure">Не знаю, подскажите</label>
-          </div>
-        </fieldset>
 
         <div class="field">
           <label for="message">Что сейчас беспокоит <span class="opt">(по желанию)</span></label>
@@ -450,6 +395,7 @@ const HTML = `<!DOCTYPE html>
 <script>
   var ENDPOINT = "/api/lead";
   var TG_USER  = "Alexey_melnik";
+  var TG_TEXT  = "Дело";
 
   var form = document.getElementById("leadForm");
   var done = document.getElementById("done");
@@ -457,12 +403,6 @@ const HTML = `<!DOCTYPE html>
   var formError = document.getElementById("formError");
   var nameEl = document.getElementById("name");
   var contactEl = document.getElementById("contact");
-
-  document.querySelectorAll("[data-service]").forEach(function (a) {
-    a.addEventListener("click", function () {
-      document.getElementById(a.dataset.service === "diag" ? "s-diag" : "s-path").checked = true;
-    });
-  });
 
   if (window.matchMedia && window.matchMedia("(hover: none)").matches && "IntersectionObserver" in window) {
     var fillObserver = new IntersectionObserver(function (entries) {
@@ -478,16 +418,10 @@ const HTML = `<!DOCTYPE html>
     if (msg) input.setAttribute("aria-invalid", "true"); else input.removeAttribute("aria-invalid");
   }
 
-  function keywordFor(service) {
-    if (service === "Диагностика") return "Хочу диагностику";
-    if (service === "Сопровождение") return "Дело";
-    return "Здравствуйте! Оставлял заявку на сайте, подскажите, что мне выбрать";
-  }
-
-  function showFallback(service) {
+  function showFallback() {
     var html = "Не получилось отправить заявку. Попробуйте ещё раз";
     if (TG_USER) {
-      var href = "https://t.me/" + encodeURIComponent(TG_USER) + "?text=" + encodeURIComponent(keywordFor(service));
+      var href = "https://t.me/" + encodeURIComponent(TG_USER) + "?text=" + encodeURIComponent(TG_TEXT);
       html += " или <a href=\\"" + href + "\\" target=\\"_blank\\" rel=\\"noopener\\">напишите мне в Телеграме</a>";
     }
     formError.innerHTML = html + ".";
@@ -499,7 +433,6 @@ const HTML = `<!DOCTYPE html>
 
     var name = nameEl.value.trim();
     var contact = contactEl.value.trim();
-    var service = form.elements.service.value;
     var ok = true;
 
     setErr(nameEl, "nameErr", name ? "" : "Напишите, как к вам обращаться");
@@ -520,7 +453,6 @@ const HTML = `<!DOCTYPE html>
       body: JSON.stringify({
         name: name,
         contact: contact,
-        service: service,
         message: form.elements.message.value.trim(),
         website: form.elements.website.value
       }),
@@ -531,7 +463,7 @@ const HTML = `<!DOCTYPE html>
       done.hidden = false;
       done.focus();
     }).catch(function () {
-      showFallback(service);
+      showFallback();
     }).finally(function () {
       clearTimeout(timer);
       btn.disabled = false;
@@ -543,7 +475,7 @@ const HTML = `<!DOCTYPE html>
 </html>
 `;
 
-const SERVICES = new Set(["Диагностика", "Сопровождение", "Не знаю, подскажите"]);
+const SERVICE = "Сопровождение";
 const USERNAME_RE = /^@?([A-Za-z][A-Za-z0-9_]{4,31})$/;
 
 const RATE_LIMIT = 3;
@@ -590,10 +522,9 @@ app.post("/api/lead", async (c) => {
 
   const name = clean(data?.name, 80);
   const contact = clean(data?.contact, 80);
-  const service = clean(data?.service, 40);
   const message = clean(data?.message, 1500);
 
-  if (!name || contact.length < 3 || !SERVICES.has(service)) {
+  if (!name || contact.length < 3) {
     return c.json({ ok: false, error: "bad_request" }, 400);
   }
 
@@ -606,7 +537,7 @@ app.post("/api/lead", async (c) => {
     "🆕 <b>Новая заявка с сайта</b>\n\n" +
     `<b>Имя:</b> ${escapeHtml(name)}\n` +
     `<b>Телеграм:</b> ${escapeHtml(contact)}\n` +
-    `<b>Интересует:</b> ${escapeHtml(service)}`;
+    `<b>Интересует:</b> ${SERVICE}`;
   if (message) {
     text += `\n\n<b>Что беспокоит:</b>\n${escapeHtml(message)}`;
   }
