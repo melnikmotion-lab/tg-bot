@@ -196,6 +196,9 @@
     margin-top: 16px; padding: 16px; border-radius: 14px; border: 2px solid var(--accent-2);
     font-weight: 700; font-size: 17px; line-height: 1.4;
   }
+  .verdict p { margin: 0 0 8px; }
+  .verdict p:last-child { margin: 0; }
+  .verdict p:first-child:not(:last-child) { font-weight: 500; }
   .opt {
     display: block; width: 100%; text-align: left; margin-bottom: 10px; padding: 16px 18px; cursor: pointer;
     background: var(--card); color: var(--ink); border: 1px solid var(--line); border-radius: 14px;
@@ -707,7 +710,11 @@
         '<div class="split-title">Одна из двух природ — основная. И это меняет всё</div>' +
         "<p>" + esc(d.twist) + "</p>" +
       "</div>" +
-      '<div class="verdict">Какая из двух у тебя основная, тест не определит. Это видно только на диагностике: по взгляду, речи и поведению.</div>' +
+      '<div class="verdict">' +
+        "<p>Тест видит тебя таким, каким ты сам себя знаешь. А основная природа часто спрятана — " +
+        "под привычками, воспитанием и чужими ожиданиями.</p>" +
+        "<p>Какая из двух у тебя главная, точно покажет только личная диагностика.</p>" +
+      "</div>" +
     "</div>";
   }
 
