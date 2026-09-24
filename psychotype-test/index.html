@@ -187,6 +187,14 @@
   }
   .hook h2 { margin-bottom: 12px; }
   .hook ul { margin-bottom: 20px; }
+  .lead { background: var(--bg); border-radius: 12px; padding: 12px 14px; margin-bottom: 8px; }
+  .lead b { display: block; color: var(--accent); margin-bottom: 4px; }
+  .opt {
+    display: block; width: 100%; text-align: left; margin-bottom: 10px; padding: 16px 18px; cursor: pointer;
+    background: var(--card); color: var(--ink); border: 1px solid var(--line); border-radius: 14px;
+    font: 500 16px/1.45 "Manrope", sans-serif; box-shadow: var(--shadow);
+  }
+  .opt:hover, .opt:focus-visible { border-color: var(--accent); }
   .again { text-align: center; margin-top: 24px; }
   .again button { background: none; border: 0; color: var(--ink-soft); font: inherit; text-decoration: underline; cursor: pointer; padding: 8px; }
 </style>
@@ -234,12 +242,20 @@
     <div class="hint" id="hint"></div>
   </section>
 
+  <!-- ============ ДОП. ВОПРОС ПРИ НИЧЬЕЙ ============ -->
+  <section class="screen" id="s-tie">
+    <span class="kicker">Ещё один вопрос</span>
+    <h2 id="tieText" style="margin:0 0 8px"></h2>
+    <p class="note" style="margin:0 0 20px">Твои ответы оказались очень ровными. Выбери, что ближе, — и результат готов.</p>
+    <div id="tieOptions"></div>
+  </section>
+
   <!-- ============ РЕЗУЛЬТАТ ============ -->
   <section class="screen" id="s-result">
     <span class="kicker">Результат</span>
     <h1 id="resTitle">Твоя природа</h1>
     <div class="plates" id="plates"></div>
-    <p class="lede" id="resLede"></p>
+    <p class="lede" id="resLede">Твои ответы указывают на сочетание двух природ. Одна из них — основная, вторая — дополнительная. Какая из них ведущая, тест не скажет, поэтому баллы мы нарочно не показываем.</p>
     <div id="pairs"></div>
 
     <div class="hook">
@@ -369,6 +385,10 @@
         "Работа за оклад без шанса заработать больше",
         "Когда одна природа глушит другую: пашешь без выгоды или крутишься без результата"
       ],
+      leads: [
+        "В основе мастерство и надёжность, а предпринимательская жилка помогает это продавать. Тебе нужна стабильность, а риск — только посчитанный.",
+        "В основе азарт возможностей и сделок, а Исполнитель даёт умение доводить до конца. Без новизны и выгоды тебе скучно, даже если всё стабильно."
+      ],
       chars: [
         ["Скрудж Макдак", "начинал чистильщиком обуви и честным трудом собрал состояние"],
         ["Форрест Гамп", "просто делал своё дело — и между делом построил креветочную компанию"]
@@ -389,6 +409,10 @@
         "Хаос и решения «на авось»",
         "Ответственность без полномочий",
         "Тащить всё на себе и не делегировать"
+      ],
+      leads: [
+        "Ты прежде всего надёжный профессионал, а власть берёшь, когда больше некому. Твоё место — правая рука руководителя или начальник своего участка.",
+        "Ты прежде всего лидер, а дисциплина и трудолюбие — твои инструменты. Тебе нужны первенство и своя зона власти, иначе ты опустошаешься."
       ],
       chars: [
         ["Стив Роджерс (Капитан Америка)", "дисциплина и служба — но команду ведёт он"],
@@ -412,6 +436,10 @@
         "Гонка и дедлайны, где некогда сделать хорошо",
         "Однообразие без смысла: Исполнитель его выдержит, Творец зачахнет"
       ],
+      leads: [
+        "Главное для тебя стабильность и понятный результат, а глубина делает тебя мастером высокого класса.",
+        "Главное для тебя смысл и свобода, а трудолюбие помогает воплощать задуманное. Рутина без смысла тебя гасит, даже если она стабильная."
+      ],
       chars: [
         ["Левша", "подковал блоху — и не ради славы"],
         ["Q из фильмов о Бонде", "тихий гений в своей мастерской"],
@@ -433,6 +461,10 @@
         "Работа «на дядю» без роста и доли",
         "Распыляться на новые проекты и не доводить ни один до масштаба",
         "Вечный спор внутри «слава или деньги»: пока не ясно, что главное, рвёшься в две стороны"
+      ],
+      leads: [
+        "Главное деньги, выгода и возможности, а власть лишь средство. Ты договоришься там, где другой будет давить.",
+        "Главное влияние, статус и первенство, а деньги лишь ресурс. Ты выберешь славу и контроль, даже если выгоднее уступить."
       ],
       chars: [
         ["Тони Старк", "наследник бизнеса, блестящий продавец и лидер команды"],
@@ -456,6 +488,10 @@
         "Сто начатых проектов и ни одного законченного",
         "Продавать то, во что не веришь: Творец внутри сопротивляется"
       ],
+      leads: [
+        "Идея для тебя товар. Ты быстро превращаешь её в деньги и легко переключаешься на следующую.",
+        "Идея для тебя ценность сама по себе, а продажа — способ дать ей жизнь. Если дело не откликается, никакие деньги тебя не заставят."
+      ],
       chars: [
         ["Вилли Вонка", "гений-изобретатель со своей фабрикой"],
         ["Остап Бендер", "великий комбинатор, для которого схема — это искусство"],
@@ -477,6 +513,10 @@
         "Рутинное администрирование без идеи",
         "Подчиняться чужому видению",
         "Давить на людей, когда они не поспевают за твоей мыслью"
+      ],
+      leads: [
+        "Ты прежде всего ведёшь и управляешь, а глубина даёт твоему лидерству смысл. Власть нужна тебе, чтобы воплощать видение.",
+        "Ты прежде всего мыслитель, а лидерство включается, когда идею нужно защитить. Власть ради власти тебе не интересна."
       ],
       chars: [
         ["Альбус Дамблдор", "мудрец, который возглавляет сопротивление"],
@@ -510,7 +550,7 @@
     return queue;
   }
 
-  var QUEUE, TOTAL, PAGES, answers, page;
+  var QUEUE, TOTAL, PAGES, answers, page, bonus;
 
   function reset() {
     QUEUE = buildQueue();
@@ -518,6 +558,8 @@
     PAGES = Math.ceil(TOTAL / PER_PAGE);
     answers = new Array(TOTAL).fill(0);
     page = 0;
+    bonus = [0, 0, 0, 0];
+    tieStep = 0;
   }
   reset();
 
@@ -607,7 +649,7 @@
 
   $("next").addEventListener("click", function () {
     if (!pageReady()) return;
-    if (page === PAGES - 1) { showResult(); return; }
+    if (page === PAGES - 1) { finish(); return; }
     page++;
     renderPage();
   });
@@ -627,37 +669,92 @@
      ПОДСЧЁТ
      Каждый ответ даёт от 0 до 1 балла (1 → 0, 2 → 0.25 … 5 → 1;
      в режиме «да/нет»: нет = 0, да = 1). У типа от 0 до 10 баллов.
+     Два психотипа с наибольшей суммой — результат, одна из 6 пар.
      Баллы и порядок никогда не показываются.
      ============================================================ */
   function score() {
     var sums = [0, 0, 0, 0];
     for (var i = 0; i < TOTAL; i++) sums[QUEUE[i].type] += (answers[i] - 1) / 4;
+    for (var t = 0; t < 4; t++) sums[t] += bonus[t];
     return sums;
   }
 
-  // Возвращает список пар-кандидатов. Обычно это одна пара.
-  //  - первое место одно, второе одно           → 1 пара
-  //  - первое место одно, на втором ничья       → лидер + каждый со второго места (до 3 пар)
-  //  - на первом месте ничья 2 типов             → 1 пара
-  //  - на первом месте ничья 3 типов             → все 3 пары между ними
-  //  - все четыре поровну                        → [] (профиль ровный)
-  function candidatePairs(sums) {
+  // Либо { pair: [a, b] }, либо { tie: [...] } — кто из этих типов
+  // делит место, от которого зависит пара.
+  //  - лидер один, второй один        → пара
+  //  - лидер один, на втором ничья    → доп. вопрос среди вторых
+  //  - на первом месте двое           → пара
+  //  - на первом месте трое/четверо   → доп. вопрос среди них
+  function pickPair(sums) {
     var levels = sums.slice().sort(function (a, b) { return b - a; })
       .filter(function (v, i, a) { return i === 0 || v !== a[i - 1]; });
     var group = function (v) {
       return [0, 1, 2, 3].filter(function (t) { return sums[t] === v; });
     };
     var top = group(levels[0]);
-    var pairs = [];
-    if (top.length === 1) {
-      group(levels[1]).forEach(function (t) { pairs.push([top[0], t]); });
-    } else if (top.length < 4) {
-      for (var a = 0; a < top.length; a++)
-        for (var b = a + 1; b < top.length; b++) pairs.push([top[a], top[b]]);
-    }
-    return pairs.map(function (p) { return p.sort(); });
+    if (top.length === 2) return { pair: top };
+    if (top.length > 2) return { tie: top };
+    var second = group(levels[1]);
+    if (second.length === 1) return { pair: [top[0], second[0]].sort() };
+    return { tie: second };
   }
 
+  /* ============================================================
+     ДОП. ВОПРОСЫ ПРИ НИЧЬЕЙ
+     Показываются только варианты тех психотипов, что в ничьей.
+     Выбранный получает небольшой бонус — меньше шага шкалы (0.25),
+     поэтому он решает только ничью и никого не обгоняет.
+     Больше двух вопросов не бывает.
+     ============================================================ */
+  var TIE_QUESTIONS = [
+    {
+      text: "Где ты предпочитаешь провести идеальный выходной?",
+      options: [
+        "Домашний уют, привычные дела, физический отдых и сон",
+        "Вечеринка, новые знакомства, движение и яркие впечатления",
+        "Соревнования, спорт, победа над собой или организация отдыха для всей компании",
+        "Уединение, книга, природа или размышления в тишине"
+      ]
+    },
+    {
+      text: "Что радует тебя сильнее всего?",
+      options: [
+        "Хорошо сделанная работа и спокойный вечер после неё",
+        "Удачная сделка или новая выгодная возможность",
+        "Победа и признание — когда ты первый",
+        "Озарение — когда наконец понял что-то важное"
+      ]
+    }
+  ];
+  var TIE_BONUS = [0.1, 0.05];
+  var tieStep = 0;
+
+  function finish() {
+    var r = pickPair(score());
+    if (r.pair) { showResult(r.pair); return; }
+    askTie(r.tie);
+  }
+
+  function askTie(types) {
+    var q = TIE_QUESTIONS[tieStep];
+    $("tieText").textContent = q.text;
+    $("tieOptions").innerHTML = shuffle(types.slice()).map(function (t) {
+      return '<button class="opt" data-t="' + t + '">' + esc(q.options[t]) + "</button>";
+    }).join("");
+    show("s-tie");
+  }
+
+  $("tieOptions").addEventListener("click", function (e) {
+    var btn = e.target.closest(".opt");
+    if (!btn) return;
+    bonus[parseInt(btn.getAttribute("data-t"), 10)] += TIE_BONUS[tieStep];
+    tieStep++;
+    finish();
+  });
+
+  /* ============================================================
+     РЕЗУЛЬТАТ
+     ============================================================ */
   function li(arr) {
     return "<ul>" + arr.map(function (t) { return "<li>" + esc(t) + "</li>"; }).join("") + "</ul>";
   }
@@ -675,54 +772,35 @@
       '<div class="row"><h3>Что тебе важно</h3><p>' + esc(d.important) + "</p></div>" +
       '<div class="row"><h3>Где раскрываешься</h3>' + li(d.where) + "</div>" +
       '<div class="row"><h3>Где сливаешь силы</h3>' + li(d.drain) + "</div>" +
+      '<div class="row"><h3>Два варианта этой пары</h3>' +
+        '<div class="lead"><b>' + esc(TYPES[p[0]].name) + " → " + esc(TYPES[p[1]].name) + "</b>" + esc(d.leads[0]) + "</div>" +
+        '<div class="lead"><b>' + esc(TYPES[p[1]].name) + " → " + esc(TYPES[p[0]].name) + "</b>" + esc(d.leads[1]) + "</div>" +
+        '<p class="note">Это два разных человека. Какой вариант — про тебя, тест не определит: это видно только на диагностике.</p>' +
+      "</div>" +
       '<div class="row"><h3>На кого похоже</h3><ul class="chars">' + chars + "</ul></div>" +
     "</div>";
   }
 
-  function showResult() {
-    var pairs = candidatePairs(score());
-    var names = function (t) { return TYPES[t].name; };
+  function showResult(p) {
+    $("plates").innerHTML =
+      '<span class="plate">' + esc(TYPES[p[0]].name) + '</span><span class="plus">+</span>' +
+      '<span class="plate">' + esc(TYPES[p[1]].name) + "</span>";
+    $("pairs").innerHTML = pairCard(p);
+    show("s-result");
+  }
 
-    if (!pairs.length) {
-      $("resTitle").textContent = "Ровный профиль";
-      $("plates").innerHTML = "";
-      $("resLede").textContent =
-        "Все четыре природы получились у тебя одинаково — так бывает, когда отвечаешь «серединой» " +
-        "или когда в жизни долго приходилось подстраиваться. Попробуй пройти тест ещё раз, отвечая " +
-        "первой реакцией, — или приходи на диагностику: вживую природу видно сразу.";
-      $("pairs").innerHTML = "";
-      show("s-result");
-      return;
-    }
-
-    // Все типы, которые попали в результат, — в фиксированном порядке,
-    // чтобы порядок не выдавал ведущую природу.
-    var inResult = [0, 1, 2, 3].filter(function (t) {
-      return pairs.some(function (p) { return p.indexOf(t) !== -1; });
-    });
-
-    $("plates").innerHTML = inResult.map(function (t, n) {
-      return (n ? '<span class="plus">+</span>' : "") + '<span class="plate">' + esc(names(t)) + "</span>";
+  // Просмотр всех шести результатов: откройте страницу с #all в конце адреса
+  if (location.hash === "#all") {
+    $("resTitle").textContent = "Все 6 результатов";
+    $("resLede").textContent = "Режим просмотра для автора теста.";
+    $("pairs").innerHTML = Object.keys(PAIRS).map(function (k) {
+      return pairCard(k.split("-").map(Number));
     }).join("");
-
-    if (pairs.length === 1) {
-      $("resTitle").textContent = "Твоя природа";
-      $("resLede").textContent =
-        "Твои ответы указывают на сочетание двух природ. Одна из них — основная, вторая — дополнительная. " +
-        "Какая из них ведущая, тест не скажет, поэтому баллы мы нарочно не показываем.";
-    } else {
-      $("resTitle").textContent = "Твоя природа — одно из сочетаний";
-      $("resLede").textContent =
-        "Твои ответы одинаково близки к нескольким природам, поэтому показываем все возможные пары. " +
-        "Прочитай их и прислушайся, где отзывается сильнее. Точно определить твою пару можно на диагностике.";
-    }
-
-    $("pairs").innerHTML = pairs.map(pairCard).join("");
     show("s-result");
   }
 
   // Для проверки из консоли
-  window.__psy = { candidatePairs: candidatePairs };
+  window.__psy = { pickPair: pickPair };
 })();
 </script>
 </body>
