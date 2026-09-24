@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Тест на психотип</title>
+<meta name="description" content="Тест на 4 психотипа: Исполнитель, Предприниматель, Руководитель, Творец. 40 утверждений, 5 минут.">
+<meta property="og:title" content="Какая у тебя природа">
+<meta property="og:description" content="Тест на 4 психотипа: 40 утверждений, 5 минут.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* ============================================================
+     ЦВЕТА И ШРИФТЫ. Меняются только здесь.
+     ============================================================ */
+  :root {
+    --bg:        #F4F0E8;
+    --card:      #FFFDF8;
+    --ink:       #23261F;
+    --ink-soft:  #5E6357;
+    --line:      #E2DCCF;
+    --accent:    #2F5D4A;
+    --accent-2:  #B5643C;
+    --accent-bg: #E3ECE6;
+    --dot:       #CFC8B8;
+    --on-accent: #FFFFFF;
+    --shadow:    0 1px 2px rgba(35,38,31,.06), 0 8px 24px rgba(35,38,31,.06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg:        #151814;
+      --card:      #1E221D;
+      --ink:       #ECEAE3;
+      --ink-soft:  #A6AB9F;
+      --line:      #30362E;
+      --accent:    #7FB89C;
+      --accent-2:  #E0976F;
+      --accent-bg: #243129;
+      --dot:       #454C42;
+      --on-accent: #10140F;
+      --shadow:    none;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg:        #151814;
+    --card:      #1E221D;
+    --ink:       #ECEAE3;
+    --ink-soft:  #A6AB9F;
+    --line:      #30362E;
+    --accent:    #7FB89C;
+    --accent-2:  #E0976F;
+    --accent-bg: #243129;
+    --dot:       #454C42;
+    --on-accent: #10140F;
+    --shadow:    none;
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font: 17px/1.55 "Manrope", system-ui, sans-serif;
+  }
+  .wrap { max-width: 640px; margin: 0 auto; padding: 32px 16px 64px; }
+  h1, h2, h3 { font-family: "Unbounded", system-ui, sans-serif; font-weight: 700; line-height: 1.15; margin: 0; }
+  h1 { font-size: clamp(30px, 8vw, 44px); letter-spacing: -.01em; }
+  h2 { font-size: 22px; }
+  h3 { font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--accent-2); font-weight: 500; }
+  p { margin: 0 0 14px; }
+  a { color: var(--accent); }
+
+  .screen { display: none; }
+  .screen.on { display: block; animation: in .3s ease; }
+  @keyframes in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) { .screen.on { animation: none; } }
+
+  .kicker {
+    display: inline-block; font-size: 13px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase;
+    color: var(--accent); background: var(--accent-bg); padding: 6px 12px; border-radius: 99px; margin-bottom: 20px;
+  }
+  .lede { font-size: 19px; color: var(--ink-soft); margin: 18px 0 28px; }
+
+  .types { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 0 0 28px; }
+  .type {
+    background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 14px;
+    font-size: 14px; color: var(--ink-soft);
+  }
+  .type b { display: block; color: var(--ink); font-size: 16px; margin-bottom: 2px; }
+
+  .facts { display: flex; gap: 28px; margin: 0 0 28px; }
+  .facts div { font-size: 14px; color: var(--ink-soft); }
+  .facts b { display: block; font-family: "Unbounded", sans-serif; font-size: 24px; color: var(--ink); }
+
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    min-height: 54px; padding: 0 28px; border: 0; border-radius: 14px; cursor: pointer;
+    background: var(--accent); color: var(--on-accent);
+    font: 600 17px/1 "Manrope", sans-serif; text-decoration: none;
+    transition: transform .1s ease, opacity .2s ease;
+  }
+  .btn:active { transform: scale(.98); }
+  .btn:disabled { opacity: .35; cursor: not-allowed; }
+  .btn.ghost { background: transparent; color: var(--ink-soft); border: 1px solid var(--line); }
+  .btn.wide { width: 100%; }
+  .note { font-size: 14px; color: var(--ink-soft); margin-top: 12px; }
+
+  /* ---------- Прогресс ---------- */
+  .progress {
+    position: sticky; top: 0; z-index: 5; background: var(--bg);
+    padding: 14px 0 12px; margin: -32px 0 16px; border-bottom: 1px solid var(--line);
+  }
+  .progress-row { display: flex; justify-content: space-between; font-size: 14px; color: var(--ink-soft); margin-bottom: 8px; }
+  .track { height: 6px; background: var(--line); border-radius: 99px; overflow: hidden; }
+  .track i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .3s ease; }
+
+  /* ---------- Вопросы ---------- */
+  .q {
+    background: var(--card); border: 1px solid var(--line); border-radius: 16px;
+    padding: 18px 18px 14px; margin-bottom: 12px; box-shadow: var(--shadow);
+    transition: border-color .2s ease;
+  }
+  .q.done { border-color: var(--accent); }
+  .q-num { font-size: 13px; color: var(--ink-soft); margin-bottom: 6px; }
+  .q-text { font-weight: 600; margin-bottom: 14px; }
+  .dots { display: flex; justify-content: space-between; align-items: center; gap: 6px; }
+  .dot { position: relative; display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; cursor: pointer; }
+  .dot input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+  .dot span {
+    display: block; border-radius: 50%; border: 2px solid var(--dot); background: transparent;
+    transition: background .15s ease, border-color .15s ease, transform .15s ease;
+  }
+  .dot.s1 span, .dot.s5 span { width: 38px; height: 38px; }
+  .dot.s2 span, .dot.s4 span { width: 30px; height: 30px; }
+  .dot.s3 span { width: 22px; height: 22px; }
+  .dot.s1 span, .dot.s2 span { border-color: var(--accent-2); }
+  .dot.s4 span, .dot.s5 span { border-color: var(--accent); }
+  .dot.s1 input:checked + span, .dot.s2 input:checked + span { background: var(--accent-2); }
+  .dot.s3 input:checked + span { background: var(--dot); }
+  .dot.s4 input:checked + span, .dot.s5 input:checked + span { background: var(--accent); }
+  .dot input:focus-visible + span { outline: 2px solid var(--ink); outline-offset: 3px; }
+  .ends { display: flex; justify-content: space-between; font-size: 13px; color: var(--ink-soft); margin-top: 6px; }
+
+  .yn { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .yn label { position: relative; cursor: pointer; }
+  .yn input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+  .yn span {
+    display: flex; align-items: center; justify-content: center; min-height: 46px; border-radius: 12px;
+    border: 1px solid var(--line); font-weight: 600; color: var(--ink-soft);
+  }
+  .yn input:checked + span { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+  .yn input:focus-visible + span { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+  .nav { display: flex; gap: 10px; margin-top: 20px; }
+  .nav .btn { flex: 1; }
+  .hint { min-height: 20px; text-align: center; font-size: 14px; color: var(--ink-soft); margin-top: 10px; }
+
+  /* ---------- Результат ---------- */
+  .plates { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 20px; }
+  .plate {
+    font-family: "Unbounded", sans-serif; font-weight: 700; font-size: clamp(18px, 5vw, 24px);
+    background: var(--accent); color: var(--on-accent); padding: 8px 14px; border-radius: 12px;
+  }
+  .plate.alt { background: var(--accent-2); }
+  .plus { align-self: center; font-family: "Unbounded", sans-serif; color: var(--ink-soft); font-size: 20px; }
+
+  .pair {
+    background: var(--card); border: 1px solid var(--line); border-radius: 20px;
+    padding: 24px 20px; margin-bottom: 16px; box-shadow: var(--shadow);
+  }
+  .pair-names { font-size: 14px; font-weight: 600; color: var(--accent); margin-bottom: 8px; }
+  .pair h2 { margin-bottom: 14px; }
+  .row { border-top: 1px solid var(--line); padding-top: 14px; margin-top: 14px; }
+  .row p:last-child, .row ul:last-child { margin-bottom: 0; }
+  .row h3 { margin-bottom: 6px; }
+  ul { margin: 0; padding-left: 20px; }
+  li { margin-bottom: 4px; }
+  .chars { list-style: none; padding: 0; }
+  .chars li { margin-bottom: 10px; }
+  .chars b { color: var(--ink); }
+  .chars span { color: var(--ink-soft); }
+
+  .hook {
+    background: var(--accent-bg); border-radius: 20px; padding: 24px 20px; margin: 24px 0 16px;
+  }
+  .hook h2 { margin-bottom: 12px; }
+  .hook ul { margin-bottom: 20px; }
+  .again { text-align: center; margin-top: 24px; }
+  .again button { background: none; border: 0; color: var(--ink-soft); font: inherit; text-decoration: underline; cursor: pointer; padding: 8px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ============ ИНТРО ============ -->
+  <section class="screen on" id="s-intro">
+    <span class="kicker">Тест на психотип</span>
+    <h1>Какая у тебя природа</h1>
+    <p class="lede">
+      У каждого человека есть природа — то, что даёт ему энергию и без чего нет радости.
+      Психотипов четыре, и у большинства людей их два: основной и дополнительный.
+      Тест покажет, из каких двух собрана твоя.
+    </p>
+    <div class="types">
+      <div class="type"><b>Исполнитель</b>мастер, надёжность, стабильность</div>
+      <div class="type"><b>Предприниматель</b>связи, выгода, новые проекты</div>
+      <div class="type"><b>Руководитель</b>власть, первенство, ответственность</div>
+      <div class="type"><b>Творец</b>смысл, глубина, свобода</div>
+    </div>
+    <div class="facts">
+      <div><b>40</b>утверждений</div>
+      <div><b>5 мин</b>времени</div>
+    </div>
+    <button class="btn wide" id="start">Начать тест</button>
+    <p class="note">Отвечай первой реакцией — она честнее.</p>
+  </section>
+
+  <!-- ============ ТЕСТ ============ -->
+  <section class="screen" id="s-quiz">
+    <div class="progress">
+      <div class="progress-row">
+        <span>Блок <span id="pageNow">1</span> из <span id="pageAll"></span></span>
+        <span><span id="answered">0</span> / <span id="total"></span></span>
+      </div>
+      <div class="track"><i id="trackFill"></i></div>
+    </div>
+    <div id="qlist"></div>
+    <div class="nav">
+      <button class="btn ghost" id="back">Назад</button>
+      <button class="btn" id="next" disabled>Далее</button>
+    </div>
+    <div class="hint" id="hint"></div>
+  </section>
+
+  <!-- ============ РЕЗУЛЬТАТ ============ -->
+  <section class="screen" id="s-result">
+    <span class="kicker">Результат</span>
+    <h1 id="resTitle">Твоя природа</h1>
+    <div class="plates" id="plates"></div>
+    <p class="lede" id="resLede"></p>
+    <div id="pairs"></div>
+
+    <div class="hook">
+      <h2>Какая из природ — основная?</h2>
+      <p>
+        Основная природа — твоя глубинная мотивация, то, как ты «пробуешь этот мир на вкус».
+        Без неё нет энергии, радости и смысла. Дополнительная — инструмент: профессия, роль, способ реализации.
+      </p>
+      <p>
+        Если они стоят не на своих местах, появляется ощущение, что проживаешь чужую жизнь.
+        Определить, какая из них ведущая, по тесту невозможно — это видно только вживую:
+        по взгляду, речи и поведению.
+      </p>
+      <p><b>На диагностике ты узнаешь:</b></p>
+      <ul>
+        <li>какая природа основная, а какая — дополнительная;</li>
+        <li>куда направить энергию, чтобы росли деньги и возможности;</li>
+        <li>какая деятельность раскрывает твой потенциал;</li>
+        <li>какой партнёр тебе подходит;</li>
+        <li>что поднимает тебя на пик, а что сливает энергию.</li>
+      </ul>
+      <a class="btn wide" id="ctaLink" target="_blank" rel="noopener">Хочу диагностику</a>
+    </div>
+
+    <div class="again"><button id="again">Пройти заново</button></div>
+  </section>
+
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ============================================================
+     НАСТРОЙКИ
+     ============================================================ */
+  // Куда ведёт кнопка «Хочу диагностику».
+  var CTA_URL = "https://t.me/Alexey_melnik?text=" +
+    encodeURIComponent("Привет! Я прошёл тест и хочу на диагностику психотипа 👋");
+
+  // "scale" — шкала из 5 точек («совсем не про меня» … «прям про меня»),
+  // "yesno" — ответы «да» / «нет».
+  var MODE = "scale";
+
+  var PER_PAGE = 5;
+
+  /* ============================================================
+     ПСИХОТИПЫ И УТВЕРЖДЕНИЯ (по 10 на каждый)
+     ============================================================ */
+  var TYPES = [
+    { id: "exec", name: "Исполнитель" },
+    { id: "biz",  name: "Предприниматель" },
+    { id: "lead", name: "Руководитель" },
+    { id: "cre",  name: "Творец" }
+  ];
+
+  var ITEMS = [
+    [ // Исполнитель
+      "Мне комфортнее, когда есть чёткая инструкция и понятный результат.",
+      "Я предпочитаю делать сам, чем объяснять другим, как делать.",
+      "Меня устраивает стабильная работа, даже если она однообразная.",
+      "Мне тяжело брать ответственность за других людей.",
+      "Мне важно знать точно, сколько мне заплатят и когда.",
+      "Если есть шанс заработать дополнительные деньги, но с риском, я не пойду на это.",
+      "Мне проще следовать правилам, чем придумывать свои.",
+      "Всё, чего я хочу, — это понятная, стабильная и спокойная жизнь.",
+      "У меня хорошо получается трудиться.",
+      "Мне некомфортно быть в центре внимания."
+    ],
+    [ // Предприниматель
+      "Я быстро нахожу общий язык с незнакомыми людьми.",
+      "Иногда могу использовать людей для своей выгоды.",
+      "Мне скучно делать одно и то же дольше, чем нужно.",
+      "Я легко иду на компромисс, если это выгодно.",
+      "Если выбирать между славой и деньгами, я выберу деньги.",
+      "Я мастерски умею продавать.",
+      "Мне нравится, когда вокруг меня много людей и движения.",
+      "Я часто упрощаю и оптимизирую процессы, которые кажутся сложными.",
+      "Мне интересно пробовать разные сферы и не застревать в одной.",
+      "Меня хлебом не корми — дай предложить, как заработать."
+    ],
+    [ // Руководитель
+      "Если выбирать между славой и деньгами, я выберу славу.",
+      "Чем больше у меня власти, тем больше я чувствую себя на своём месте.",
+      "Меня невозможно переспорить: я отстаиваю свою позицию, даже если все против.",
+      "Мне важно, чтобы люди слышали и уважали моё мнение.",
+      "По жизни я всегда занимаю лидерские позиции.",
+      "Я ненавижу, когда решения принимают без моего участия.",
+      "Я готов взять ответственность за других, если вижу, что никто не берёт.",
+      "Рутинная деятельность без цели и роста меня быстро опустошает.",
+      "Иногда я подавляю тех, кто слабее меня.",
+      "Мне важно первенство — быть лучшим в своём деле или сфере."
+    ],
+    [ // Творец
+      "Я могу бесконечно погружаться в одну тему, если мне действительно интересно.",
+      "Я всегда ищу причину и суть вещей, что бы это ни было.",
+      "Мне важнее быть честным с собой, чем нравиться окружающим.",
+      "Меня раздражает, когда приходится делать поверхностно.",
+      "Мне сложно объяснить себя людям, которые мыслят иначе.",
+      "Деньги и власть волнуют меня в последнюю очередь.",
+      "Иногда я так ухожу в свои мысли, что забываю про людей рядом.",
+      "Мне душно в жёстких рамках и дедлайнах, мне важна свобода.",
+      "Меня намного больше увлекает процесс созидания, чем результат.",
+      "Я независим в суждениях и никогда не меняю мнение под давлением."
+    ]
+  ];
+
+  /* ============================================================
+     ОПИСАНИЯ ПАР. Ключ — номера психотипов по порядку TYPES (0–3).
+     Шаблон: кто ты → сила → что важно → где раскрываешься →
+     где сливаешь силы → персонажи.
+     ============================================================ */
+  var PAIRS = {
+    "0-1": {
+      title: "Мастер, который умеет продать своё дело",
+      who: "В тебе встретились две разные природы: одна любит порядок и понятный результат, другая — людей, движение и выгоду. Ты умеешь и сделать, и договориться — редкое сочетание.",
+      power: "Ты доводишь дела до конца и при этом видишь, где на них можно заработать. На тебя можно положиться, и с тобой выгодно иметь дело.",
+      important: "Понятные деньги и понятные правила. Чтобы труд окупался, а риски были посчитаны.",
+      where: [
+        "Своё дело на ремесле или услуге",
+        "Продажи в сфере, которую знаешь изнутри",
+        "Управление проектами, закупки, логистика",
+        "Частная практика: мастер, специалист, подрядчик"
+      ],
+      drain: [
+        "Жизнь на постоянных «качелях» дохода и риска",
+        "Работа за оклад без шанса заработать больше",
+        "Когда одна природа глушит другую: пашешь без выгоды или крутишься без результата"
+      ],
+      chars: [
+        ["Скрудж Макдак", "начинал чистильщиком обуви и честным трудом собрал состояние"],
+        ["Форрест Гамп", "просто делал своё дело — и между делом построил креветочную компанию"]
+      ]
+    },
+    "0-2": {
+      title: "Надёжный командир",
+      who: "Ты и сам работаешь, и держишь на себе команду. Ценишь порядок, дисциплину и слово, которое держат.",
+      power: "С тобой всё работает как часы: ты задаёшь правила, следишь за ними и первым подаёшь пример.",
+      important: "Ясная структура, уважение и результат, за который не стыдно.",
+      where: [
+        "Руководитель производства или отдела",
+        "Операционный директор, администратор",
+        "Госслужба, армия, силовые структуры",
+        "Тренер, наставник, бригадир"
+      ],
+      drain: [
+        "Хаос и решения «на авось»",
+        "Ответственность без полномочий",
+        "Тащить всё на себе и не делегировать"
+      ],
+      chars: [
+        ["Стив Роджерс (Капитан Америка)", "дисциплина и служба — но команду ведёт он"],
+        ["Минерва Макгонагалл", "правила, строгость и забота о своих"],
+        ["Моника Геллер", "порядок во всём и негласный лидер компании"]
+      ]
+    },
+    "0-3": {
+      title: "Мастер своего дела",
+      who: "Тебя тянет в глубину: сделать не просто хорошо, а по-настоящему. Ты любишь ремесло, тишину и дело, в которое можно уйти с головой.",
+      power: "Качество. Там, где другим «и так сойдёт», ты находишь суть и доводишь до совершенства.",
+      important: "Время и спокойствие, чтобы работать в своём темпе. Чтобы не дёргали и не торопили.",
+      where: [
+        "Ремесло и авторская работа руками",
+        "Инженер, разработчик, исследователь",
+        "Реставратор, дизайнер, редактор",
+        "Узкий специалист, к которому идут за глубиной"
+      ],
+      drain: [
+        "Продавать себя и быть на виду",
+        "Гонка и дедлайны, где некогда сделать хорошо",
+        "Однообразие без смысла: Исполнитель его выдержит, Творец зачахнет"
+      ],
+      chars: [
+        ["Левша", "подковал блоху — и не ради славы"],
+        ["Q из фильмов о Бонде", "тихий гений в своей мастерской"],
+        ["Амели Пулен", "живёт в своём мире и незаметно меняет жизни людей"]
+      ]
+    },
+    "1-2": {
+      title: "Стратег и хозяин",
+      who: "Ты видишь возможности и умеешь их забирать. Просто зарабатывать тебе мало — хочется строить своё и управлять им.",
+      power: "Гибкость плюс сила: договариваешься, где выгодно, и давишь, где нужно.",
+      important: "Масштаб, влияние и деньги как инструмент свободы и власти.",
+      where: [
+        "Собственник бизнеса, основатель",
+        "Коммерческий директор, руководитель продаж",
+        "Инвестор, девелопер",
+        "Политика и большие переговоры"
+      ],
+      drain: [
+        "Работа «на дядю» без роста и доли",
+        "Распыляться на новые проекты и не доводить ни один до масштаба",
+        "Вечный спор внутри «слава или деньги»: пока не ясно, что главное, рвёшься в две стороны"
+      ],
+      chars: [
+        ["Тони Старк", "наследник бизнеса, блестящий продавец и лидер команды"],
+        ["Скарлетт О'Хара", "подняла дело из руин и никому не уступала"],
+        ["Вито Корлеоне", "сделки, связи и власть"]
+      ]
+    },
+    "1-3": {
+      title: "Генератор идей, который умеет их продать",
+      who: "Ты фонтанируешь идеями и видишь, как превратить их в деньги. В одной сфере тебе тесно — мир слишком интересный.",
+      power: "Ты придумываешь нестандартное и умеешь зажечь этим других.",
+      important: "Свобода, новизна, люди вокруг и ощущение, что делаешь что-то своё.",
+      where: [
+        "Креативный продюсер, маркетолог",
+        "Автор проектов, стартапы",
+        "Блогер, ведущий, продюсер курсов",
+        "Консалтинг и «упаковка» чужих идей"
+      ],
+      drain: [
+        "Жёсткий график и рутина",
+        "Сто начатых проектов и ни одного законченного",
+        "Продавать то, во что не веришь: Творец внутри сопротивляется"
+      ],
+      chars: [
+        ["Вилли Вонка", "гений-изобретатель со своей фабрикой"],
+        ["Остап Бендер", "великий комбинатор, для которого схема — это искусство"],
+        ["Джек Воробей", "свобода, импровизация и выгода"]
+      ]
+    },
+    "2-3": {
+      title: "Визионер",
+      who: "Ты ведёшь людей за идеей. Тебе важно не просто управлять, а знать, зачем и куда.",
+      power: "Глубина плюс воля: ты видишь дальше других и умеешь сделать так, чтобы твоя картина сбылась.",
+      important: "Смысл, независимость и уважение. Чтобы твоё видение слышали.",
+      where: [
+        "Основатель идейного проекта или школы",
+        "Главный редактор, режиссёр, архитектор",
+        "Научный руководитель, преподаватель-лидер",
+        "Стратегия и видение продукта"
+      ],
+      drain: [
+        "Рутинное администрирование без идеи",
+        "Подчиняться чужому видению",
+        "Давить на людей, когда они не поспевают за твоей мыслью"
+      ],
+      chars: [
+        ["Альбус Дамблдор", "мудрец, который возглавляет сопротивление"],
+        ["Гэндальф", "знает больше всех и собирает братство"],
+        ["Морфеус", "верит в идею и ведёт за ней людей"]
+      ]
+    }
+  };
+
+  /* ============================================================
+     ПЕРЕМЕШИВАНИЕ: 10 кругов по 4 утверждения (по одному на тип),
+     соседние утверждения всегда от разных психотипов.
+     ============================================================ */
+  function shuffle(a) {
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+
+  function buildQueue() {
+    var pools = ITEMS.map(function (list) { return shuffle(list.slice()); });
+    var queue = [], last = -1;
+    for (var r = 0; r < 10; r++) {
+      var order;
+      do { order = shuffle([0, 1, 2, 3]); } while (order[0] === last);
+      order.forEach(function (t) { queue.push({ type: t, text: pools[t][r] }); });
+      last = order[3];
+    }
+    return queue;
+  }
+
+  var QUEUE, TOTAL, PAGES, answers, page;
+
+  function reset() {
+    QUEUE = buildQueue();
+    TOTAL = QUEUE.length;
+    PAGES = Math.ceil(TOTAL / PER_PAGE);
+    answers = new Array(TOTAL).fill(0);
+    page = 0;
+  }
+  reset();
+
+  var $ = function (id) { return document.getElementById(id); };
+  var qlist = $("qlist");
+
+  $("pageAll").textContent = PAGES;
+  $("total").textContent = TOTAL;
+  $("ctaLink").href = CTA_URL;
+
+  function show(id) {
+    var screens = document.querySelectorAll(".screen");
+    for (var i = 0; i < screens.length; i++) screens[i].classList.remove("on");
+    $(id).classList.add("on");
+    window.scrollTo(0, 0);
+  }
+
+  function progress() {
+    var done = answers.filter(function (v) { return v > 0; }).length;
+    $("answered").textContent = done;
+    $("trackFill").style.width = (done / TOTAL * 100) + "%";
+  }
+
+  function pageReady() {
+    var to = Math.min((page + 1) * PER_PAGE, TOTAL);
+    for (var i = page * PER_PAGE; i < to; i++) if (!answers[i]) return false;
+    return true;
+  }
+
+  function syncNav() {
+    var ready = pageReady();
+    $("next").disabled = !ready;
+    $("next").textContent = page === PAGES - 1 ? "Показать результат" : "Далее";
+    $("back").style.visibility = page === 0 ? "hidden" : "visible";
+    $("hint").textContent = ready ? "" : "Ответь на все утверждения, чтобы идти дальше";
+  }
+
+  function esc(s) {
+    return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
+  }
+
+  function scaleHtml(i) {
+    var dots = "";
+    for (var v = 1; v <= 5; v++) {
+      dots += '<label class="dot s' + v + '"><input type="radio" name="q' + i + '" value="' + v + '"' +
+        (answers[i] === v ? " checked" : "") + ' aria-label="' + v + ' из 5"><span></span></label>';
+    }
+    return '<div class="dots">' + dots + '</div>' +
+      '<div class="ends"><span>совсем не про меня</span><span>прям про меня</span></div>';
+  }
+
+  function yesNoHtml(i) {
+    // «нет» хранится как 1, «да» — как 5, чтобы подсчёт был общий для обоих режимов
+    return '<div class="yn">' +
+      '<label><input type="radio" name="q' + i + '" value="1"' + (answers[i] === 1 ? " checked" : "") + '><span>Нет</span></label>' +
+      '<label><input type="radio" name="q' + i + '" value="5"' + (answers[i] === 5 ? " checked" : "") + '><span>Да</span></label>' +
+    '</div>';
+  }
+
+  function renderPage() {
+    var html = "";
+    var to = Math.min((page + 1) * PER_PAGE, TOTAL);
+    for (var i = page * PER_PAGE; i < to; i++) {
+      html += '<div class="q' + (answers[i] ? " done" : "") + '" data-i="' + i + '">' +
+        '<div class="q-num">' + (i + 1) + " / " + TOTAL + "</div>" +
+        '<p class="q-text">' + esc(QUEUE[i].text) + "</p>" +
+        (MODE === "yesno" ? yesNoHtml(i) : scaleHtml(i)) +
+      "</div>";
+    }
+    qlist.innerHTML = html;
+    $("pageNow").textContent = page + 1;
+    progress();
+    syncNav();
+  }
+
+  qlist.addEventListener("change", function (e) {
+    var input = e.target;
+    if (!input || input.type !== "radio") return;
+    var card = input.closest(".q");
+    answers[parseInt(card.getAttribute("data-i"), 10)] = parseInt(input.value, 10);
+    card.classList.add("done");
+    progress();
+    syncNav();
+  });
+
+  $("start").addEventListener("click", function () { show("s-quiz"); renderPage(); });
+
+  $("next").addEventListener("click", function () {
+    if (!pageReady()) return;
+    if (page === PAGES - 1) { showResult(); return; }
+    page++;
+    renderPage();
+  });
+
+  $("back").addEventListener("click", function () {
+    if (page === 0) return;
+    page--;
+    renderPage();
+  });
+
+  $("again").addEventListener("click", function () {
+    reset();
+    show("s-intro");
+  });
+
+  /* ============================================================
+     ПОДСЧЁТ
+     Каждый ответ даёт от 0 до 1 балла (1 → 0, 2 → 0.25 … 5 → 1;
+     в режиме «да/нет»: нет = 0, да = 1). У типа от 0 до 10 баллов.
+     Баллы и порядок никогда не показываются.
+     ============================================================ */
+  function score() {
+    var sums = [0, 0, 0, 0];
+    for (var i = 0; i < TOTAL; i++) sums[QUEUE[i].type] += (answers[i] - 1) / 4;
+    return sums;
+  }
+
+  // Возвращает список пар-кандидатов. Обычно это одна пара.
+  //  - первое место одно, второе одно           → 1 пара
+  //  - первое место одно, на втором ничья       → лидер + каждый со второго места (до 3 пар)
+  //  - на первом месте ничья 2 типов             → 1 пара
+  //  - на первом месте ничья 3 типов             → все 3 пары между ними
+  //  - все четыре поровну                        → [] (профиль ровный)
+  function candidatePairs(sums) {
+    var levels = sums.slice().sort(function (a, b) { return b - a; })
+      .filter(function (v, i, a) { return i === 0 || v !== a[i - 1]; });
+    var group = function (v) {
+      return [0, 1, 2, 3].filter(function (t) { return sums[t] === v; });
+    };
+    var top = group(levels[0]);
+    var pairs = [];
+    if (top.length === 1) {
+      group(levels[1]).forEach(function (t) { pairs.push([top[0], t]); });
+    } else if (top.length < 4) {
+      for (var a = 0; a < top.length; a++)
+        for (var b = a + 1; b < top.length; b++) pairs.push([top[a], top[b]]);
+    }
+    return pairs.map(function (p) { return p.sort(); });
+  }
+
+  function li(arr) {
+    return "<ul>" + arr.map(function (t) { return "<li>" + esc(t) + "</li>"; }).join("") + "</ul>";
+  }
+
+  function pairCard(p) {
+    var d = PAIRS[p[0] + "-" + p[1]];
+    var chars = d.chars.map(function (c) {
+      return "<li><b>" + esc(c[0]) + "</b> <span>— " + esc(c[1]) + "</span></li>";
+    }).join("");
+    return '<div class="pair">' +
+      '<div class="pair-names">' + esc(TYPES[p[0]].name) + " + " + esc(TYPES[p[1]].name) + "</div>" +
+      "<h2>" + esc(d.title) + "</h2>" +
+      "<p>" + esc(d.who) + "</p>" +
+      '<div class="row"><h3>В чём сила</h3><p>' + esc(d.power) + "</p></div>" +
+      '<div class="row"><h3>Что тебе важно</h3><p>' + esc(d.important) + "</p></div>" +
+      '<div class="row"><h3>Где раскрываешься</h3>' + li(d.where) + "</div>" +
+      '<div class="row"><h3>Где сливаешь силы</h3>' + li(d.drain) + "</div>" +
+      '<div class="row"><h3>На кого похоже</h3><ul class="chars">' + chars + "</ul></div>" +
+    "</div>";
+  }
+
+  function showResult() {
+    var pairs = candidatePairs(score());
+    var names = function (t) { return TYPES[t].name; };
+
+    if (!pairs.length) {
+      $("resTitle").textContent = "Ровный профиль";
+      $("plates").innerHTML = "";
+      $("resLede").textContent =
+        "Все четыре природы получились у тебя одинаково — так бывает, когда отвечаешь «серединой» " +
+        "или когда в жизни долго приходилось подстраиваться. Попробуй пройти тест ещё раз, отвечая " +
+        "первой реакцией, — или приходи на диагностику: вживую природу видно сразу.";
+      $("pairs").innerHTML = "";
+      show("s-result");
+      return;
+    }
+
+    // Все типы, которые попали в результат, — в фиксированном порядке,
+    // чтобы порядок не выдавал ведущую природу.
+    var inResult = [0, 1, 2, 3].filter(function (t) {
+      return pairs.some(function (p) { return p.indexOf(t) !== -1; });
+    });
+
+    $("plates").innerHTML = inResult.map(function (t, n) {
+      return (n ? '<span class="plus">+</span>' : "") + '<span class="plate">' + esc(names(t)) + "</span>";
+    }).join("");
+
+    if (pairs.length === 1) {
+      $("resTitle").textContent = "Твоя природа";
+      $("resLede").textContent =
+        "Твои ответы указывают на сочетание двух природ. Одна из них — основная, вторая — дополнительная. " +
+        "Какая из них ведущая, тест не скажет, поэтому баллы мы нарочно не показываем.";
+    } else {
+      $("resTitle").textContent = "Твоя природа — одно из сочетаний";
+      $("resLede").textContent =
+        "Твои ответы одинаково близки к нескольким природам, поэтому показываем все возможные пары. " +
+        "Прочитай их и прислушайся, где отзывается сильнее. Точно определить твою пару можно на диагностике.";
+    }
+
+    $("pairs").innerHTML = pairs.map(pairCard).join("");
+    show("s-result");
+  }
+
+  // Для проверки из консоли
+  window.__psy = { candidatePairs: candidatePairs };
+})();
+</script>
+</body>
+</html>
