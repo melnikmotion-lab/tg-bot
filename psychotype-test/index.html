@@ -205,6 +205,7 @@
     font: 500 16px/1.45 "Manrope", sans-serif; box-shadow: var(--shadow);
   }
   .opt:hover, .opt:focus-visible { border-color: var(--accent); }
+  .cta-done { margin-top: 12px; padding: 14px 16px; border-radius: 12px; background: var(--card); }
   .gains { padding-left: 22px; margin: 0 0 20px; }
   .gains li { margin-bottom: 10px; }
   .field { margin-bottom: 16px; }
@@ -319,11 +320,12 @@
       </p>
       <p><b>После диагностики у тебя будет:</b></p>
       <ol class="gains">
-        <li><b>Ясность.</b> Ты точно знаешь, кто ты и какое дело — твоё. Без гаданий и «а вдруг».</li>
+        <li><b>Устойчивость.</b> Ты точно знаешь, кто ты и какое дело — твоё. Чужие мнения, кризисы и мысли «а может, всё бросить?» больше не выбивают тебя из колеи.</li>
         <li><b>Своё место.</b> Понимаешь, где раскроешься на максимум, а что прямо сейчас сливает твою энергию.</li>
         <li><b>План.</b> Куда направить силы, чтобы дело приносило и радость, и деньги.</li>
       </ol>
-      <a class="btn wide" id="ctaLink" target="_blank" rel="noopener">Хочу диагностику</a>
+      <button class="btn wide" id="ctaBtn" type="button">Узнать про диагностику</button>
+      <div class="cta-done" id="ctaDone" role="status" hidden></div>
     </div>
 
     <div class="again"><button id="again">Пройти заново</button></div>
@@ -347,8 +349,9 @@
     return "https://t.me/" + TG_USER + "?text=" + encodeURIComponent(text);
   }
 
-  // Куда отправлять результат (работает, когда страницу отдаёт сервер)
+  // Куда отправлять результат и заявку (работает, когда страницу отдаёт сервер)
   var RESULT_ENDPOINT = "/api/result";
+  var LEAD_ENDPOINT = "/api/lead";
 
   // "scale" — шкала из 5 точек («совсем не про меня» … «прям про меня»),
   // "yesno" — ответы «да» / «нет».
@@ -540,7 +543,6 @@
 
   $("pageAll").textContent = PAGES;
   $("total").textContent = TOTAL;
-  $("ctaLink").href = ctaUrl(null);
 
   function show(id) {
     var screens = document.querySelectorAll(".screen");
@@ -760,6 +762,7 @@
   }
 
   var pendingPair = null;
+  var person = null;
 
   function askContact(p) {
     pendingPair = p;
@@ -779,7 +782,8 @@
     setErr(contactEl, "cContactErr", contact.length >= 3 ? "" : "Укажи ник в Telegram или номер телефона");
     if (!name) { nameEl.focus(); return; }
     if (contact.length < 3) { contactEl.focus(); return; }
-    report(pendingPair, name, contact, $("cSite").value);
+    person = { name: name, contact: contact, website: $("cSite").value };
+    report(pendingPair, name, contact, person.website);
     showResult(pendingPair);
   });
 
@@ -803,8 +807,40 @@
     } catch (e) {}
   }
 
+  $("ctaBtn").addEventListener("click", function () {
+    var btn = $("ctaBtn"), done = $("ctaDone");
+    function ok() {
+      btn.hidden = true;
+      done.innerHTML = "<b>Заявка отправлена!</b> Я напишу тебе в Telegram в ближайшее время 🙌";
+      done.hidden = false;
+    }
+    function fail() {
+      btn.disabled = false;
+      btn.textContent = "Узнать про диагностику";
+      done.innerHTML = 'Не получилось отправить заявку. Напиши мне напрямую: <a href="' +
+        ctaUrl(pendingPair) + '" target="_blank" rel="noopener">@' + TG_USER + "</a>";
+      done.hidden = false;
+    }
+    if (!/^https?:$/.test(location.protocol) || !person) { fail(); return; }
+    btn.disabled = true;
+    btn.textContent = "Отправляю…";
+    var ctrl = new AbortController();
+    var timer = setTimeout(function () { ctrl.abort(); }, 12000);
+    fetch(LEAD_ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ pair: pendingPair, name: person.name, contact: person.contact, website: person.website }),
+      signal: ctrl.signal
+    }).then(function (r) {
+      if (!r.ok) throw new Error("http " + r.status);
+      ok();
+    }).catch(fail).finally(function () { clearTimeout(timer); });
+  });
+
   function showResult(p) {
-    $("ctaLink").href = ctaUrl(p);
+    $("ctaBtn").hidden = false;
+    $("ctaBtn").disabled = false;
+    $("ctaDone").hidden = true;
     $("plates").innerHTML =
       '<span class="plate">' + esc(TYPES[p[0]].name) + '</span><span class="plus">+</span>' +
       '<span class="plate">' + esc(TYPES[p[1]].name) + "</span>";

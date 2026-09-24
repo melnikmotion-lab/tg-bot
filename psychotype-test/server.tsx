@@ -47,6 +47,45 @@ function rateLimited(ip: string): boolean {
   return false;
 }
 
+async function sendToOwner(text: string, contact: string): Promise<boolean> {
+  const payload: any = {
+    chat_id: Bun.env.OWNER_CHAT_ID,
+    text,
+    parse_mode: "HTML",
+    disable_web_page_preview: true,
+  };
+  const m = USERNAME_RE.exec(contact);
+  if (m) {
+    payload.reply_markup = {
+      inline_keyboard: [[{ text: "Написать", url: `https://t.me/${m[1]}` }]],
+    };
+  }
+  try {
+    const r = await fetch(`https://api.telegram.org/bot${Bun.env.BOT_TOKEN}/sendMessage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    if (!r.ok) {
+      console.error("telegram sendMessage failed", r.status, await r.text());
+      return false;
+    }
+    return true;
+  } catch (e) {
+    console.error("telegram sendMessage error", e);
+    return false;
+  }
+}
+
+function validPair(v: unknown): number[] | null {
+  const pair = Array.isArray(v) ? v.map(Number) : [];
+  const ok =
+    pair.length === 2 &&
+    pair.every((t) => Number.isInteger(t) && t >= 0 && t < 4) &&
+    pair[0] !== pair[1];
+  return ok ? pair : null;
+}
+
 const app = new Hono();
 
 app.get("/", async (c) => {
@@ -71,12 +110,10 @@ app.post("/api/result", async (c) => {
 
   const name = clean(data?.name, 80);
   const contact = clean(data?.contact, 80);
-  const pair = Array.isArray(data?.pair) ? data.pair.map(Number) : [];
+  const pair = validPair(data?.pair);
   const scores = Array.isArray(data?.scores) ? data.scores.map(Number) : [];
   const valid =
-    pair.length === 2 &&
-    pair.every((t: number) => Number.isInteger(t) && t >= 0 && t < 4) &&
-    pair[0] !== pair[1] &&
+    pair !== null &&
     scores.length === 4 &&
     scores.every((v: number) => Number.isFinite(v) && v >= 0 && v <= 10) &&
     name.length > 0 &&
@@ -100,38 +137,50 @@ app.post("/api/result", async (c) => {
     "🧪 <b>Тест на сайте пройден</b>\n\n" +
     `<b>Имя:</b> ${escapeHtml(name)}\n` +
     `<b>Телеграм:</b> ${escapeHtml(contact)}\n\n` +
-    `<b>Результат:</b> ${TYPES[pair[0]]} + ${TYPES[pair[1]]}\n\n` +
+    `<b>Результат:</b> ${TYPES[pair![0]]} + ${TYPES[pair![1]]}\n\n` +
     `<b>Баллы (из 10):</b>\n${breakdown}` +
     tiebreak;
 
-  const payload: any = {
-    chat_id: Bun.env.OWNER_CHAT_ID,
-    text,
-    parse_mode: "HTML",
-    disable_web_page_preview: true,
-  };
-  const m = USERNAME_RE.exec(contact);
-  if (m) {
-    payload.reply_markup = {
-      inline_keyboard: [[{ text: "Написать", url: `https://t.me/${m[1]}` }]],
-    };
-  }
-
-  try {
-    const r = await fetch(`https://api.telegram.org/bot${Bun.env.BOT_TOKEN}/sendMessage`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    if (!r.ok) {
-      console.error("telegram sendMessage failed", r.status, await r.text());
-      return c.json({ ok: false, error: "telegram" }, 502);
-    }
-  } catch (e) {
-    console.error("telegram sendMessage error", e);
+  if (!(await sendToOwner(text, contact))) {
     return c.json({ ok: false, error: "telegram" }, 502);
   }
 
+  return c.json({ ok: true });
+});
+
+app.post("/api/lead", async (c) => {
+  let data: any;
+  try {
+    data = await c.req.json();
+  } catch {
+    return c.json({ ok: false, error: "bad_request" }, 400);
+  }
+
+  if (data?.website) {
+    return c.json({ ok: true });
+  }
+
+  const name = clean(data?.name, 80);
+  const contact = clean(data?.contact, 80);
+  const pair = validPair(data?.pair);
+  if (!pair || !name || contact.length < 3) {
+    return c.json({ ok: false, error: "bad_request" }, 400);
+  }
+
+  const ip = c.req.header("x-forwarded-for")?.split(",")[0]?.trim() ?? "?";
+  if (rateLimited(ip)) {
+    return c.json({ ok: false, error: "too_many" }, 429);
+  }
+
+  const text =
+    "🆕 <b>Заявка на диагностику с теста</b>\n\n" +
+    `<b>Имя:</b> ${escapeHtml(name)}\n` +
+    `<b>Телеграм:</b> ${escapeHtml(contact)}\n` +
+    `<b>Результат теста:</b> ${TYPES[pair[0]]} + ${TYPES[pair[1]]}`;
+
+  if (!(await sendToOwner(text, contact))) {
+    return c.json({ ok: false, error: "telegram" }, 502);
+  }
   return c.json({ ok: true });
 });
 
