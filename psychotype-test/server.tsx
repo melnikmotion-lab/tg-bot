@@ -21,6 +21,15 @@ async function getPage(): Promise<string> {
 }
 
 const TYPES = ["Исполнитель", "Предприниматель", "Руководитель", "Творец"];
+const USERNAME_RE = /^@?([A-Za-z][A-Za-z0-9_]{4,31})$/;
+
+function clean(v: unknown, limit: number): string {
+  return String(v ?? "").trim().slice(0, limit);
+}
+
+function escapeHtml(s: string): string {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
 
 const RATE_LIMIT = 5;
 const RATE_WINDOW_MS = 10 * 60 * 1000;
@@ -56,6 +65,12 @@ app.post("/api/result", async (c) => {
     return c.json({ ok: false, error: "bad_request" }, 400);
   }
 
+  if (data?.website) {
+    return c.json({ ok: true });
+  }
+
+  const name = clean(data?.name, 80);
+  const contact = clean(data?.contact, 80);
   const pair = Array.isArray(data?.pair) ? data.pair.map(Number) : [];
   const scores = Array.isArray(data?.scores) ? data.scores.map(Number) : [];
   const valid =
@@ -63,7 +78,9 @@ app.post("/api/result", async (c) => {
     pair.every((t: number) => Number.isInteger(t) && t >= 0 && t < 4) &&
     pair[0] !== pair[1] &&
     scores.length === 4 &&
-    scores.every((v: number) => Number.isFinite(v) && v >= 0 && v <= 10);
+    scores.every((v: number) => Number.isFinite(v) && v >= 0 && v <= 10) &&
+    name.length > 0 &&
+    contact.length >= 3;
   if (!valid) {
     return c.json({ ok: false, error: "bad_request" }, 400);
   }
@@ -81,20 +98,30 @@ app.post("/api/result", async (c) => {
 
   const text =
     "🧪 <b>Тест на сайте пройден</b>\n\n" +
+    `<b>Имя:</b> ${escapeHtml(name)}\n` +
+    `<b>Телеграм:</b> ${escapeHtml(contact)}\n\n` +
     `<b>Результат:</b> ${TYPES[pair[0]]} + ${TYPES[pair[1]]}\n\n` +
     `<b>Баллы (из 10):</b>\n${breakdown}` +
     tiebreak;
+
+  const payload: any = {
+    chat_id: Bun.env.OWNER_CHAT_ID,
+    text,
+    parse_mode: "HTML",
+    disable_web_page_preview: true,
+  };
+  const m = USERNAME_RE.exec(contact);
+  if (m) {
+    payload.reply_markup = {
+      inline_keyboard: [[{ text: "Написать", url: `https://t.me/${m[1]}` }]],
+    };
+  }
 
   try {
     const r = await fetch(`https://api.telegram.org/bot${Bun.env.BOT_TOKEN}/sendMessage`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        chat_id: Bun.env.OWNER_CHAT_ID,
-        text,
-        parse_mode: "HTML",
-        disable_web_page_preview: true,
-      }),
+      body: JSON.stringify(payload),
     });
     if (!r.ok) {
       console.error("telegram sendMessage failed", r.status, await r.text());
