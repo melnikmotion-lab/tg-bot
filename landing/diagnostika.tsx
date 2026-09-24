@@ -8,7 +8,7 @@ const HTML = `<!DOCTYPE html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ПриродоВед: диагностика</title>
-<meta name="description" content="Диагностика: в чём ваша сила и где она раскроется на максимум. Видеосозвон в Телеграме, 60–90 минут, $15.">
+<meta name="description" content="Диагностика: в чём ваша сила и где она раскроется на максимум. Видеосозвон в Телеграме, 60–90 минут, $30.">
 <meta name="theme-color" content="#B569DF">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -233,7 +233,7 @@ const HTML = `<!DOCTYPE html>
           <div><dt>Формат</dt><dd>Видеосозвон в Телеграме.</dd></div>
           <div><dt>Длительность</dt><dd>60–90 минут.</dd></div>
           <div><dt>После диагностики</dt><dd>У вас навсегда останется аудио- и видеозапись, чтобы вы могли в любой момент вернуться к ней.</dd></div>
-          <div><dt>Стоимость</dt><dd class="price-sum">$15</dd></div>
+          <div><dt>Стоимость</dt><dd class="price-sum">$30</dd></div>
         </dl>
         <p class="spots">💡 В этом месяце я возьму <b>3 человека</b> на диагностику в пилотном формате по этой стоимости.</p>
         <a class="btn dark" href="#leadForm">Записаться на диагностику</a>
