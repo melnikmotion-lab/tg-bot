@@ -306,8 +306,16 @@
      НАСТРОЙКИ
      ============================================================ */
   // Куда ведёт кнопка «Хочу диагностику».
-  var CTA_URL = "https://t.me/Alexey_melnik?text=" +
-    encodeURIComponent("Привет! Я прошёл тест и хочу на диагностику психотипа 👋");
+  var TG_USER = "Alexey_melnik";
+  function ctaUrl(p) {
+    var text = p
+      ? "Привет! Я прошёл тест, у меня " + TYPES[p[0]].name + " + " + TYPES[p[1]].name + ". Хочу на диагностику 👋"
+      : "Привет! Я прошёл тест и хочу на диагностику психотипа 👋";
+    return "https://t.me/" + TG_USER + "?text=" + encodeURIComponent(text);
+  }
+
+  // Куда отправлять результат (работает, когда страницу отдаёт сервер)
+  var RESULT_ENDPOINT = "/api/result";
 
   // "scale" — шкала из 5 точек («совсем не про меня» … «прям про меня»),
   // "yesno" — ответы «да» / «нет».
@@ -499,7 +507,7 @@
 
   $("pageAll").textContent = PAGES;
   $("total").textContent = TOTAL;
-  $("ctaLink").href = CTA_URL;
+  $("ctaLink").href = ctaUrl(null);
 
   function show(id) {
     var screens = document.querySelectorAll(".screen");
@@ -718,7 +726,26 @@
     "</div>";
   }
 
+  function report(p) {
+    if (!/^https?:$/.test(location.protocol)) return;
+    try {
+      var sums = score();
+      fetch(RESULT_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          pair: p,
+          scores: sums.map(function (v, t) { return Math.round((v - bonus[t]) * 100) / 100; }),
+          tiebreak: tieStep
+        }),
+        keepalive: true
+      }).catch(function () {});
+    } catch (e) {}
+  }
+
   function showResult(p) {
+    $("ctaLink").href = ctaUrl(p);
+    report(p);
     $("plates").innerHTML =
       '<span class="plate">' + esc(TYPES[p[0]].name) + '</span><span class="plus">+</span>' +
       '<span class="plate">' + esc(TYPES[p[1]].name) + "</span>";
