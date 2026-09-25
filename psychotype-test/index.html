@@ -221,6 +221,7 @@
   .field input:focus { outline: 2px solid var(--accent); outline-offset: 1px; border-color: var(--accent); }
   .field input[aria-invalid=true] { border-color: #C0392B; }
   .err { color: #C0392B; font-size: 14px; margin: 6px 0 0; min-height: 1em; }
+  .opt-label { display: block; font-weight: 400; font-size: 14px; color: var(--ink-soft); }
   .hint-sm { font-size: 14px; color: var(--ink-soft); margin: 6px 0 0; }
   .hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
   .again { text-align: center; margin-top: 24px; }
@@ -290,9 +291,13 @@
         <p class="err" id="cNameErr" aria-live="polite"></p>
       </div>
       <div class="field">
-        <label for="cContact">Твой Telegram</label>
+        <label for="cContact">Ник в Telegram</label>
         <input type="text" id="cContact" placeholder="@nik" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="80">
         <p class="hint-sm">Ник можно скопировать в Telegram: Настройки → Имя пользователя.</p>
+      </div>
+      <div class="field">
+        <label for="cPhone">Или номер телефона <span class="opt-label">на который зарегистрирован Telegram</span></label>
+        <input type="tel" id="cPhone" placeholder="+7 999 123-45-67" autocomplete="tel" maxlength="40">
         <p class="err" id="cContactErr" aria-live="polite"></p>
       </div>
       <div class="hp" aria-hidden="true">
@@ -815,7 +820,7 @@
   // Любой другой ввод принимаем как есть — строго не проверяем.
   function normalizeContact(raw) {
     var v = raw.trim();
-    if (v.length < 3) return { error: "Укажи свой Telegram" };
+    if (!v) return { value: "" };
     var link = v.match(/^(?:https?:\/\/)?(?:www\.)?(?:t|telegram)\.me\/([A-Za-z][A-Za-z0-9_]{3,31})(?:[\/?#].*)?$/i);
     if (link) return { value: "@" + link[1] };
     if (/^@*[A-Za-z][A-Za-z0-9_]{3,31}$/.test(v)) return { value: "@" + v.replace(/^@+/, "") };
@@ -824,21 +829,23 @@
 
   $("contactForm").addEventListener("submit", function (e) {
     e.preventDefault();
-    var nameEl = $("cName"), contactEl = $("cContact");
+    var nameEl = $("cName"), contactEl = $("cContact"), phoneEl = $("cPhone");
     var name = nameEl.value.trim();
-    var c = normalizeContact(contactEl.value);
+    var contact = normalizeContact(contactEl.value).value;
+    var phone = phoneEl.value.trim();
+    var hasContact = contact.length >= 3 || phone.replace(/\D/g, "").length >= 5;
     setErr(nameEl, "cNameErr", name ? "" : "Напиши, как к тебе обращаться");
-    setErr(contactEl, "cContactErr", c.error || "");
+    setErr(contactEl, "cContactErr", hasContact ? "" : "Укажи ник или номер телефона — хотя бы что-то одно");
+    if (hasContact) phoneEl.removeAttribute("aria-invalid"); else phoneEl.setAttribute("aria-invalid", "true");
     if (!name) { nameEl.focus(); return; }
-    if (c.error) { contactEl.focus(); return; }
-    var contact = c.value;
+    if (!hasContact) { contactEl.focus(); return; }
     contactEl.value = contact;
-    person = { name: name, contact: contact, website: $("cSite").value };
-    report(pendingPair, name, contact, person.website);
+    person = { name: name, contact: contact, phone: phone, website: $("cSite").value };
+    report(pendingPair, person);
     showResult(pendingPair);
   });
 
-  function report(p, name, contact, website) {
+  function report(p, who) {
     if (!/^https?:$/.test(location.protocol)) return;
     try {
       var sums = score();
@@ -849,9 +856,10 @@
           pair: p,
           scores: sums.map(function (v, t) { return Math.round((v - bonus[t]) * 100) / 100; }),
           tiebreak: tieStep,
-          name: name,
-          contact: contact,
-          website: website
+          name: who.name,
+          contact: who.contact,
+          phone: who.phone,
+          website: who.website
         }),
         keepalive: true
       }).catch(function () {});
@@ -880,7 +888,7 @@
     fetch(LEAD_ENDPOINT, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ pair: pendingPair, name: person.name, contact: person.contact, website: person.website }),
+      body: JSON.stringify({ pair: pendingPair, name: person.name, contact: person.contact, phone: person.phone, website: person.website }),
       signal: ctrl.signal
     }).then(function (r) {
       if (!r.ok) throw new Error("http " + r.status);

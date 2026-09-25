@@ -47,17 +47,47 @@ function rateLimited(ip: string): boolean {
   return false;
 }
 
-async function sendToOwner(text: string, contact: string): Promise<boolean> {
+// Контакт человека: ник в Telegram и/или номер телефона (хотя бы что-то одно)
+type Person = { name: string; contact: string; phone: string };
+
+function readPerson(data: any): Person | null {
+  const person = {
+    name: clean(data?.name, 80),
+    contact: clean(data?.contact, 80),
+    phone: clean(data?.phone, 40),
+  };
+  const hasContact = person.contact.length >= 3 || person.phone.replace(/\D/g, "").length >= 5;
+  return person.name && hasContact ? person : null;
+}
+
+function personLines(p: Person): string {
+  return (
+    `<b>Имя:</b> ${escapeHtml(p.name)}\n` +
+    (p.contact ? `<b>Телеграм:</b> ${escapeHtml(p.contact)}\n` : "") +
+    (p.phone ? `<b>Телефон:</b> ${escapeHtml(p.phone)}\n` : "")
+  );
+}
+
+// Кнопка «Написать»: по нику, а если его нет — по номеру в международном формате
+function writeUrl(p: Person): string | null {
+  const m = USERNAME_RE.exec(p.contact);
+  if (m) return `https://t.me/${m[1]}`;
+  const digits = p.phone.replace(/\D/g, "");
+  if (p.phone.startsWith("+") && digits.length >= 10) return `https://t.me/+${digits}`;
+  return null;
+}
+
+async function sendToOwner(text: string, person: Person): Promise<boolean> {
   const payload: any = {
     chat_id: Bun.env.OWNER_CHAT_ID,
     text,
     parse_mode: "HTML",
     disable_web_page_preview: true,
   };
-  const m = USERNAME_RE.exec(contact);
-  if (m) {
+  const url = writeUrl(person);
+  if (url) {
     payload.reply_markup = {
-      inline_keyboard: [[{ text: "Написать", url: `https://t.me/${m[1]}` }]],
+      inline_keyboard: [[{ text: "Написать", url }]],
     };
   }
   try {
@@ -108,16 +138,14 @@ app.post("/api/result", async (c) => {
     return c.json({ ok: true });
   }
 
-  const name = clean(data?.name, 80);
-  const contact = clean(data?.contact, 80);
+  const person = readPerson(data);
   const pair = validPair(data?.pair);
   const scores = Array.isArray(data?.scores) ? data.scores.map(Number) : [];
   const valid =
     pair !== null &&
+    person !== null &&
     scores.length === 4 &&
-    scores.every((v: number) => Number.isFinite(v) && v >= 0 && v <= 10) &&
-    name.length > 0 &&
-    contact.length >= 3;
+    scores.every((v: number) => Number.isFinite(v) && v >= 0 && v <= 10);
   if (!valid) {
     return c.json({ ok: false, error: "bad_request" }, 400);
   }
@@ -135,13 +163,13 @@ app.post("/api/result", async (c) => {
 
   const text =
     "🧪 <b>Тест на сайте пройден</b>\n\n" +
-    `<b>Имя:</b> ${escapeHtml(name)}\n` +
-    `<b>Телеграм:</b> ${escapeHtml(contact)}\n\n` +
+    personLines(person!) +
+    "\n" +
     `<b>Результат:</b> ${TYPES[pair![0]]} + ${TYPES[pair![1]]}\n\n` +
     `<b>Баллы (из 10):</b>\n${breakdown}` +
     tiebreak;
 
-  if (!(await sendToOwner(text, contact))) {
+  if (!(await sendToOwner(text, person!))) {
     return c.json({ ok: false, error: "telegram" }, 502);
   }
 
@@ -160,10 +188,9 @@ app.post("/api/lead", async (c) => {
     return c.json({ ok: true });
   }
 
-  const name = clean(data?.name, 80);
-  const contact = clean(data?.contact, 80);
+  const person = readPerson(data);
   const pair = validPair(data?.pair);
-  if (!pair || !name || contact.length < 3) {
+  if (!pair || !person) {
     return c.json({ ok: false, error: "bad_request" }, 400);
   }
 
@@ -174,11 +201,10 @@ app.post("/api/lead", async (c) => {
 
   const text =
     "🆕 <b>Заявка на диагностику с теста</b>\n\n" +
-    `<b>Имя:</b> ${escapeHtml(name)}\n` +
-    `<b>Телеграм:</b> ${escapeHtml(contact)}\n` +
+    personLines(person) +
     `<b>Результат теста:</b> ${TYPES[pair[0]]} + ${TYPES[pair[1]]}`;
 
-  if (!(await sendToOwner(text, contact))) {
+  if (!(await sendToOwner(text, person))) {
     return c.json({ ok: false, error: "telegram" }, 502);
   }
   return c.json({ ok: true });
