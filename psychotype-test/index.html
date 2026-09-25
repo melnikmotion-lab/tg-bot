@@ -221,6 +221,7 @@
   .field input:focus { outline: 2px solid var(--accent); outline-offset: 1px; border-color: var(--accent); }
   .field input[aria-invalid=true] { border-color: #C0392B; }
   .err { color: #C0392B; font-size: 14px; margin: 6px 0 0; min-height: 1em; }
+  .hint-sm { font-size: 14px; color: var(--ink-soft); margin: 6px 0 0; }
   .hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
   .again { text-align: center; margin-top: 24px; }
   .again button { background: none; border: 0; color: var(--ink-soft); font: inherit; text-decoration: underline; cursor: pointer; padding: 8px; }
@@ -290,7 +291,8 @@
       </div>
       <div class="field">
         <label for="cContact">Твой Telegram</label>
-        <input type="text" id="cContact" placeholder="@ник или номер телефона" autocomplete="off" maxlength="80">
+        <input type="text" id="cContact" placeholder="@nik, ссылка t.me/nik или номер" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="80">
+        <p class="hint-sm">Ник можно скопировать в Telegram: Настройки → Имя пользователя.</p>
         <p class="err" id="cContactErr" aria-live="polite"></p>
       </div>
       <div class="hp" aria-hidden="true">
@@ -809,14 +811,40 @@
     if (msg) input.setAttribute("aria-invalid", "true"); else input.removeAttribute("aria-invalid");
   }
 
+  // Приводит ввод к виду «@nik» или «+79991234567».
+  // Принимает @nik, nik, t.me/nik, https://t.me/nik и номер в любом формате.
+  function normalizeContact(raw) {
+    var v = raw.trim();
+    if (!v) return { error: "Укажи ник в Telegram или номер телефона" };
+    var link = v.match(/^(?:https?:\/\/)?(?:www\.)?(?:t|telegram)\.me\/([^\/?#\s]+)/i);
+    if (link) v = link[1];
+    var digits = v.replace(/[\s()\-.]/g, "");
+    if (/^\+?\d+$/.test(digits)) {
+      var n = digits.replace("+", "").length;
+      if (n < 10 || n > 15) return { error: "Проверь номер: в нём не хватает или слишком много цифр" };
+      return { value: digits };
+    }
+    v = v.replace(/^@+/, "");
+    if (/[а-яё]/i.test(v)) return { error: "Ник в Telegram пишется только латиницей" };
+    if (/\s/.test(v)) return { error: "В нике не бывает пробелов — проверь, что вставил именно ник" };
+    if (!/^[A-Za-z0-9_]+$/.test(v)) return { error: "В нике могут быть только латинские буквы, цифры и _" };
+    if (!/^[A-Za-z]/.test(v)) return { error: "Ник в Telegram начинается с буквы" };
+    if (v.length < 4) return { error: "Слишком короткий ник — проверь, всё ли скопировалось" };
+    if (v.length > 32) return { error: "Слишком длинный ник — в Telegram максимум 32 символа" };
+    return { value: "@" + v };
+  }
+
   $("contactForm").addEventListener("submit", function (e) {
     e.preventDefault();
     var nameEl = $("cName"), contactEl = $("cContact");
-    var name = nameEl.value.trim(), contact = contactEl.value.trim();
+    var name = nameEl.value.trim();
+    var c = normalizeContact(contactEl.value);
     setErr(nameEl, "cNameErr", name ? "" : "Напиши, как к тебе обращаться");
-    setErr(contactEl, "cContactErr", contact.length >= 3 ? "" : "Укажи ник в Telegram или номер телефона");
+    setErr(contactEl, "cContactErr", c.error || "");
     if (!name) { nameEl.focus(); return; }
-    if (contact.length < 3) { contactEl.focus(); return; }
+    if (c.error) { contactEl.focus(); return; }
+    var contact = c.value;
+    contactEl.value = contact;
     person = { name: name, contact: contact, website: $("cSite").value };
     report(pendingPair, name, contact, person.website);
     showResult(pendingPair);
@@ -894,7 +922,7 @@
   }
 
   // Для проверки из консоли
-  window.__psy = { pickPair: pickPair };
+  window.__psy = { pickPair: pickPair, normalizeContact: normalizeContact };
 })();
 </script>
 </body>

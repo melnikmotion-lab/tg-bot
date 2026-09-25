@@ -21,7 +21,7 @@ async function getPage(): Promise<string> {
 }
 
 const TYPES = ["Исполнитель", "Предприниматель", "Руководитель", "Творец"];
-const USERNAME_RE = /^@?([A-Za-z][A-Za-z0-9_]{4,31})$/;
+const USERNAME_RE = /^@?([A-Za-z][A-Za-z0-9_]{3,31})$/;
 
 function clean(v: unknown, limit: number): string {
   return String(v ?? "").trim().slice(0, limit);
