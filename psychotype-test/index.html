@@ -291,7 +291,7 @@
       </div>
       <div class="field">
         <label for="cContact">Твой Telegram</label>
-        <input type="text" id="cContact" placeholder="@nik или ссылка t.me/nik" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="80">
+        <input type="text" id="cContact" placeholder="@nik" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="80">
         <p class="hint-sm">Ник можно скопировать в Telegram: Настройки → Имя пользователя.</p>
         <p class="err" id="cContactErr" aria-live="polite"></p>
       </div>
@@ -811,22 +811,15 @@
     if (msg) input.setAttribute("aria-invalid", "true"); else input.removeAttribute("aria-invalid");
   }
 
-  // Приводит ввод к виду «@nik».
-  // Принимает @nik, nik, t.me/nik и https://t.me/nik.
+  // Если ввели ник или ссылку t.me/…, приводим к виду «@nik».
+  // Любой другой ввод принимаем как есть — строго не проверяем.
   function normalizeContact(raw) {
     var v = raw.trim();
-    if (!v) return { error: "Укажи свой ник в Telegram" };
-    var link = v.match(/^(?:https?:\/\/)?(?:www\.)?(?:t|telegram)\.me\/([^\/?#\s]+)/i);
-    if (link) v = link[1];
-    if (/^\+?[\d\s()\-.]+$/.test(v)) return { error: "Нужен ник в Telegram, а не номер телефона" };
-    v = v.replace(/^@+/, "");
-    if (/[а-яё]/i.test(v)) return { error: "Ник в Telegram пишется только латиницей" };
-    if (/\s/.test(v)) return { error: "В нике не бывает пробелов — проверь, что вставил именно ник" };
-    if (!/^[A-Za-z0-9_]+$/.test(v)) return { error: "В нике могут быть только латинские буквы, цифры и _" };
-    if (!/^[A-Za-z]/.test(v)) return { error: "Ник в Telegram начинается с буквы" };
-    if (v.length < 4) return { error: "Слишком короткий ник — проверь, всё ли скопировалось" };
-    if (v.length > 32) return { error: "Слишком длинный ник — в Telegram максимум 32 символа" };
-    return { value: "@" + v };
+    if (v.length < 3) return { error: "Укажи свой Telegram" };
+    var link = v.match(/^(?:https?:\/\/)?(?:www\.)?(?:t|telegram)\.me\/([A-Za-z][A-Za-z0-9_]{3,31})(?:[\/?#].*)?$/i);
+    if (link) return { value: "@" + link[1] };
+    if (/^@*[A-Za-z][A-Za-z0-9_]{3,31}$/.test(v)) return { value: "@" + v.replace(/^@+/, "") };
+    return { value: v };
   }
 
   $("contactForm").addEventListener("submit", function (e) {
