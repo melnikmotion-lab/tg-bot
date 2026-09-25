@@ -291,7 +291,7 @@
       </div>
       <div class="field">
         <label for="cContact">Твой Telegram</label>
-        <input type="text" id="cContact" placeholder="@nik, ссылка t.me/nik или номер" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="80">
+        <input type="text" id="cContact" placeholder="@nik или ссылка t.me/nik" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="80">
         <p class="hint-sm">Ник можно скопировать в Telegram: Настройки → Имя пользователя.</p>
         <p class="err" id="cContactErr" aria-live="polite"></p>
       </div>
@@ -811,19 +811,14 @@
     if (msg) input.setAttribute("aria-invalid", "true"); else input.removeAttribute("aria-invalid");
   }
 
-  // Приводит ввод к виду «@nik» или «+79991234567».
-  // Принимает @nik, nik, t.me/nik, https://t.me/nik и номер в любом формате.
+  // Приводит ввод к виду «@nik».
+  // Принимает @nik, nik, t.me/nik и https://t.me/nik.
   function normalizeContact(raw) {
     var v = raw.trim();
-    if (!v) return { error: "Укажи ник в Telegram или номер телефона" };
+    if (!v) return { error: "Укажи свой ник в Telegram" };
     var link = v.match(/^(?:https?:\/\/)?(?:www\.)?(?:t|telegram)\.me\/([^\/?#\s]+)/i);
     if (link) v = link[1];
-    var digits = v.replace(/[\s()\-.]/g, "");
-    if (/^\+?\d+$/.test(digits)) {
-      var n = digits.replace("+", "").length;
-      if (n < 10 || n > 15) return { error: "Проверь номер: в нём не хватает или слишком много цифр" };
-      return { value: digits };
-    }
+    if (/^\+?[\d\s()\-.]+$/.test(v)) return { error: "Нужен ник в Telegram, а не номер телефона" };
     v = v.replace(/^@+/, "");
     if (/[а-яё]/i.test(v)) return { error: "Ник в Telegram пишется только латиницей" };
     if (/\s/.test(v)) return { error: "В нике не бывает пробелов — проверь, что вставил именно ник" };
